@@ -48,6 +48,14 @@ Install the matching Playwright browser once with `pnpm exec playwright install 
 
 Business commands retain one identity/authority-bound pending request before dispatch. Interrupted confirmation survives restart and retries the original key. Offline team writes are blocked; this journal is not an offline synchronization queue. Material consumption, production output, NCR closure, and CSV export remain disabled until their complete reconciliation or authorization slices are delivered.
 
+## Repository and checkpoints
+
+This folder is an independent Git repository on `main`, with `origin` pointing to [raktim-yoddha/fasteners-factory-erp](https://github.com/raktim-yoddha/fasteners-factory-erp). The enclosing checkout and sibling projects retain their own configuration.
+
+Every completed change must pass its applicable checks and receive a focused local commit before the next change or the end of a work session. The authoritative rule is in [AGENTS.md](AGENTS.md) and its identical [CLAUDE.md](CLAUDE.md). Commits provide local rollback checkpoints; publishing to GitHub is a separate action. Secrets, databases, build outputs and installers remain excluded.
+
+Inspect checkpoints with `git log --oneline`. Use `git revert <commit>` to undo a completed change while retaining history; inspect the selected change and preserve any current work before reverting.
+
 ## Documentation
 
 - [PID.md](PID.md): project initiation, priority, delivery gates and risks.

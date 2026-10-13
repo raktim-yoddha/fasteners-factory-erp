@@ -16,4 +16,8 @@ Verify that the Git root is this exact project directory, `origin` has the suppl
 
 ## State
 
-Implementation and validation in progress. The remote has no advertised branches at the initial read-only check.
+Implemented locally. `origin` is the supplied HTTPS URL, the project Git root is this folder, and the enclosing checkout retains its original root and no remote. The verified GitHub name is configured only in the project; the existing author email is reused. The initial remote read advertised no branches. No push was requested or performed.
+
+Baseline commit: `22cee41` (`feat: record desktop and team ERP baseline`). The following documentation commit records the required checkpoint policy. Git history provides the definitive commit identities.
+
+Validation: engineering equality and source checksum passed; the staged handoff checksum matched the supplied bytes exactly; staged private/runtime/build exclusions passed; Git whitespace checks passed with the documented generated-source exception. Final documentation formatting, identical contracts and clean commit status are verified before delivery. Existing product acceptance evidence is unchanged by this Git/documentation task.

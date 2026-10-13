@@ -25,6 +25,7 @@ The owner-approved handoff in `docs/handoff.md` and root PRD define product scop
 
 - Keep changes inside this project. Preserve sibling work and parent Git configuration. Do not force push, bypass hooks, or reset remote data.
 - Record task scope, interfaces, validation and remaining gates in docs/tasks before changes. Update owning documentation with behavior changes.
+- After every completed change to code, configuration or documentation, run the applicable checks and make a local Git commit before starting the next change or ending the turn. Keep each commit focused and recoverable, include related documentation and validation evidence, and stage only intended project files. Never commit secrets or generated runtime/build artifacts, bypass hooks, or automatically push. If a commit cannot be created, report the blocker and preserve the working changes.
 - Pin exact dependencies and commit one pnpm lockfile. Generate database types; never hand-edit them.
 - Work directly without subagents, as requested by the owner. Reuse shared components, controllers and contracts. Keep files focused and avoid duplicate behavior.
 - Run typecheck, lint, focused invariant tests and affected runtime checks. Cross-authority/runtime parity requires actual evidence.
