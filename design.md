@@ -14,23 +14,23 @@ Forms are derived from shared record field definitions rather than duplicated pe
 
 ## Navigation and screen inventory
 
-| Surface                  | Design and behavior                                                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Mode selection           | Solo/device and Team/server choices with authority consequences                                                      |
-| Workspace/company picker | Separate names/UUIDs, empty setup, opt-in SAMPLE, current memberships                                                |
-| Authentication           | Registration, verification, sign-in/recovery, invitation acceptance, MFA challenge                                   |
-| Overview                 | Real order/lot/hold/work counts, linked blockers and recent audit                                                    |
-| Masters                  | Customer, supplier and item tabs; reusable scoped lists and forms                                                    |
-| Engineering              | Drawing reference/route draft and immutable approval; full versioned file/BOM views pending                          |
-| Sales                    | RFQ, quotation and accepted-order tabs; pinned references, discrepancies and exact price calculations                |
-| Procurement              | PO approval and bounded partial receipts; allocation/requisition breadth pending                                     |
-| Stock                    | Separate stores/reserved/available/WIP/vendor balances, exact scan input and guarded movement dialogs                |
-| Production/equipment     | Work and readiness records; full job/capacity/output presentation pending acceptance                                 |
-| Quality/vendor work      | Holds/NCR and custody records; approved multi-characteristic/rework screens pending                                  |
-| Packing/dispatch         | Reservation scan verification, package readiness, physical dispatch and bounded returns                              |
-| Reports/audit            | Bounded scoped read windows and explicit as-of time; cursor pagination/authorized exports pending                    |
-| Company settings         | Current membership, multiple roles, explicit grants, plant scopes, review/MFA policy and accepted ownership transfer |
-| Local recovery           | Encrypted database export; full validated restore/cutover activation visibly pending                                 |
+| Surface                  | Design and behavior                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Mode selection           | Solo/device and Team/server choices with authority consequences                                                           |
+| Workspace/company picker | Separate names/UUIDs, empty setup, opt-in SAMPLE, current memberships                                                     |
+| Authentication           | Registration, verification, sign-in/recovery, invitation acceptance, MFA challenge                                        |
+| Overview                 | Real order/lot/hold/work counts, linked blockers and recent audit                                                         |
+| Masters                  | Customer, supplier and item tabs; reusable scoped lists and forms                                                         |
+| Engineering              | Drawing reference/route draft and immutable approval; full versioned file/BOM views pending                               |
+| Sales                    | RFQ, quotation and accepted-order tabs; pinned references, discrepancies and exact price calculations                     |
+| Procurement              | PO approval and bounded partial receipts; allocation/requisition breadth pending                                          |
+| Stock                    | Separate stores/reserved/available/WIP/vendor balances, exact scan input and guarded movement dialogs                     |
+| Production/equipment     | Work and readiness records; full job/capacity/output presentation pending acceptance                                      |
+| Quality/vendor work      | Holds/NCR and custody records; approved multi-characteristic/rework screens pending                                       |
+| Packing/dispatch         | Reservation scan verification, package readiness, physical dispatch and bounded returns                                   |
+| Reports/audit            | Bounded scoped read windows and explicit as-of time; cursor pagination/authorized exports pending                         |
+| Company settings         | Current membership, multiple roles, explicit grants, plant scopes, review/MFA policy and accepted ownership transfer      |
+| Local recovery           | Encrypted export; desktop all-workspace preview and explicit separate-database activation; portable files/cutover pending |
 
 Unavailable actions are disabled with a reason. Role-aware controls improve discoverability; SQL/process enforcement remains decisive. General search currently filters the loaded scoped window and is labeled accordingly.
 
@@ -51,3 +51,5 @@ The original native design uses Home, Work, Scan, Approvals and More, with keybo
 Plant selection is available to every authorized team member through the persistent shell, independently of access-administration permission. Shared account-security and snapshot-password components are reused across account/company views. Snapshot passphrases use labeled password inputs and matching confirmation; Electron never relies on an unsupported browser prompt. Printed SAMPLE records retain a visible fictional-data mark.
 
 A restored unresolved command displays Confirmation unknown and offers Retry original request. It blocks scope changes and new business writes. Offline team actions are disabled with a reason and cached reads remain visibly offline. Pending manufacturing completion and CSV export show unavailable states rather than a successful-looking action.
+
+Desktop recovery reuses Dialog, Field, Table and Button. Review labels the all-workspace scope, date, exact counts and retained previous database. Unknown restore opens on local-mode entry and blocks other local writes/select actions until original-token confirmation. Passwords are cleared after review and never stored in the journal. Empty snapshots are explicitly identified.

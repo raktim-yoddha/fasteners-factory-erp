@@ -7,7 +7,7 @@ import {
   fieldsSchema,
   identifierSchema,
 } from './schemas';
-import type { CommandResult, Snapshot, Workspace } from './index';
+import type { CommandResult, RecoveryPreview, Snapshot, Workspace } from './index';
 
 const revision = z.string().regex(/^\d+$/);
 const timestamp = z.string().min(10).max(80);
@@ -52,6 +52,18 @@ export const commandResultSchema = z.discriminatedUnion('ok', [
     })
     .strict(),
 ]) satisfies z.ZodType<CommandResult>;
+export const recoveryPreviewSchema = z
+  .object({
+    token: identifierSchema,
+    createdAt: z.string().datetime(),
+    expiresAt: z.string().datetime(),
+    scope: z.literal('all-device-solo-workspaces'),
+    workspaces: z.array(workspaceSchema).max(500),
+    counts: z
+      .object({ records: revision, lots: revision, ledger: revision, audit: revision })
+      .strict(),
+  })
+  .strict() satisfies z.ZodType<RecoveryPreview>;
 export const snapshotSchema = z
   .object({
     operationalOrders: z.array(operationalObligationSchema).max(200).optional(),

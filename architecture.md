@@ -77,3 +77,7 @@ Team workspace opening resolves an authorized plant before enabling commands. Th
 ## Operational references without commercial access
 
 The team snapshot includes two bounded obligation projections authorized by current stock/dispatch permissions. Each exposes exactly identifier, code, item identifier, original quantity and state. A Stores member can choose an accepted order or approved PO and perform its permitted reservation/receipt while full quote, sales-order, purchase-order, price and customer fields remain protected by ordinary RLS. A narrowly checked private read helper supplies these references; it does not grant business-table mutation or broaden commercial read policy. Shared application helpers supply selectors and dispatch labels consistently.
+
+## Desktop recovery selection
+
+Typed application recovery ports expose individual preview/activate/cancel preload operations. Main owns bounded file selection and authenticated decryption. Utility SQLite validates the allowlisted schema and supported obligations in query-only memory, writes and revalidates a separate managed database, then atomically commits its versioned selector. Previous bytes remain intact. Startup rejects invalid selectors without fallback. The selector and durable client journal retain activation tokens for restart confirmation. See [docs/recovery.md](docs/recovery.md).

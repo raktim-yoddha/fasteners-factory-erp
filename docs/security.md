@@ -18,10 +18,12 @@ Local audit cannot resist a device administrator. Live SQLite is OS-protected, n
 
 ## Pending proof
 
-Broader forged-frame/path/navigation tests, credential corruption and callback tests, bounded private-file policies, MFA recovery/device loss, explicit export authorization/audit, full restore schema validation and clean-machine checks remain release gates. Existing tests prove specific boundaries, not universal security certification.
+Broader forged-frame/path/navigation tests, credential corruption and callback tests, bounded private-file policies, MFA recovery/device loss, explicit export authorization/audit, complete portable attachment recovery and clean-machine checks remain release gates. Existing tests prove specific boundaries, not universal security certification.
 
 ## Current measured proof
 
 A second Electron window with the same preload and bundled URL cannot borrow the primary window's IPC authority. Renderer `require` and `process` are absent. Pending business requests are retained before dispatch in identity/authority-bound web storage and restored after restart. Journal corruption or quota failure prevents a new dispatch. This journal is a local business record and is not advertised as encrypted at rest; Auth credentials remain in OS-backed storage on Electron.
 
 Malformed or foreign successful RPC replies become Confirmation unknown. Offline team mutation is blocked. SQL tests verify plant/grant escalation rejection, current membership revocation and required MFA on accepted ownership transfer. Actual signed MFA challenges, full private Storage policies, and hostile-path/credential-corruption expansion remain separate gates.
+
+Desktop recovery allowlists every schema object before business reads with trusted schema disabled. Integrity, foreign-key, exact-value, custody, obligation and audit/idempotency checks precede activation. A privileged managed selector commits only after the candidate is flushed and revalidated; old bytes are retained. Original-token retry resolves lost acknowledgment, and invalid journal/selector state fails closed. No backup-provided SQL, renderer-supplied paths or extension-loading API is exposed.

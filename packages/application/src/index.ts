@@ -8,6 +8,7 @@ import type {
 } from '@fasteners/contracts';
 export { capability } from './capabilities';
 export { recordOptions, orderLabel } from './operational-reads';
+export type { SnapshotRecoveryPort, RecoveryJournal } from './recovery';
 export type SaveState = 'idle' | 'submitting' | 'committed' | 'unsent' | 'unknown' | 'failed';
 export interface PendingCommandStore {
   read(actor: string, authority: Authority): CommandRequest | null;

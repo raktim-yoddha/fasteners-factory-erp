@@ -6,10 +6,11 @@ import { webcrypto } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { z } from 'zod';
 import { authoritySchema, parseCommand, DomainError } from '@fasteners/contracts';
-import { encryptDatabase } from '@fasteners/backup';
+import { decryptDatabase, encryptDatabase } from '@fasteners/backup';
 import { DatabaseClient } from './database-client';
 import { Credentials } from './credentials';
 import { saveEncryptedFile } from './backup-file';
+import { readBackupFile } from './backup-input';
 const bundleDirectory = dirname(fileURLToPath(import.meta.url));
 const rendererDirectory = join(bundleDirectory, 'renderer');
 protocol.registerSchemesAsPrivileged([
@@ -37,6 +38,9 @@ const operationSchema = z
       'snapshot',
       'execute',
       'exportEncryptedDatabase',
+      'previewRestore',
+      'activateRestore',
+      'cancelRestore',
       'authGet',
       'authSet',
       'authRemove',
@@ -50,6 +54,9 @@ const expectedArgs: Record<z.infer<typeof operationSchema>['method'], number> = 
   snapshot: 1,
   execute: 1,
   exportEncryptedDatabase: 1,
+  previewRestore: 1,
+  activateRestore: 1,
+  cancelRestore: 1,
   authGet: 1,
   authSet: 2,
   authRemove: 1,
@@ -171,6 +178,38 @@ async function start() {
           await saveEncryptedFile(destination, encrypted);
           break;
         }
+        case 'previewRestore': {
+          const passphrase = z.string().min(12).max(1024).parse(operation.args[0]);
+          const selected = await dialog.showOpenDialog(window, {
+            title: 'Review encrypted database snapshot',
+            properties: ['openFile'],
+            filters: [{ name: 'Encrypted Factory database', extensions: ['fferp'] }],
+          });
+          if (selected.canceled || selected.filePaths.length !== 1)
+            throw new DomainError('INVALID_INPUT', 'Backup selection cancelled.');
+          const restored = await decryptDatabase(
+            await readBackupFile(selected.filePaths[0]!),
+            passphrase,
+            webcrypto as Crypto,
+          );
+          try {
+            value = await database!.call('previewRestore', [
+              restored.database,
+              restored.header.createdAt,
+            ]);
+          } finally {
+            restored.database.fill(0);
+          }
+          break;
+        }
+        case 'activateRestore':
+          value = await database!.call('activateRestore', [
+            z.string().uuid().parse(operation.args[0]),
+          ]);
+          break;
+        case 'cancelRestore':
+          await database!.call('cancelRestore', [z.string().uuid().parse(operation.args[0])]);
+          break;
         case 'authGet':
           value = await credentials.get(z.string().parse(operation.args[0]));
           break;

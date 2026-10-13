@@ -41,12 +41,14 @@ The isolated backend uses API port **55321**, database **55322**, and mail captu
 | `pnpm --filter @fasteners/desktop package` | Builds the Windows NSIS installer                                           |
 | `pnpm e2e:desktop:packaged`                | Exercises the bundled Windows executable with isolated SAMPLE data          |
 | `pnpm release:checksums`                   | Writes SHA-256 sums for the unsigned Windows development artifacts          |
-| `pnpm test:restore`                        | Tests encrypted database envelope integrity and rejection cases             |
+| `pnpm test:restore`                        | Tests encrypted envelopes, desktop restore and failure preservation         |
 | `pnpm db:types`                            | Regenerates database types from the running local schema                    |
 
 Install the matching Playwright browser once with `pnpm exec playwright install chromium`. Mobile commands intentionally return a deferred-status error. `test:parity` currently proves shared exact-value/contract vectors; full PostgreSQL/browser/native business parity remains a broader acceptance gate.
 
 Business commands retain one identity/authority-bound pending request before dispatch. Interrupted confirmation survives restart and retries the original key. Offline team writes are blocked; this journal is not an offline synchronization queue. Material consumption, production output, NCR closure, and CSV export remain disabled until their complete reconciliation or authorization slices are delivered.
+
+Desktop can preview and activate encrypted snapshots from the local workspace selector. Snapshots cover all local workspaces together. Activation selects a validated separate database and retains the former database unchanged. Unresolved restore tokens survive restart and block new local writes. See [desktop recovery](docs/recovery.md) for bounds and remaining portable recovery gates.
 
 ## Repository and checkpoints
 

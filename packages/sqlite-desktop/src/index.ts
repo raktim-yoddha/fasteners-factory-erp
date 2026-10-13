@@ -11,11 +11,13 @@ export class DesktopSqlDriver implements SqlDriver {
   private readonly db: Database.Database;
   private queue: Promise<unknown> = Promise.resolve();
   private readonly direct: SqlExecutor;
-  constructor(filename: string) {
-    this.db = new Database(filename);
+  constructor(filename: string | Uint8Array, readOnly = false) {
+    this.db = new Database(typeof filename === 'string' ? filename : Buffer.from(filename));
     this.db.defaultSafeIntegers(true);
+    this.db.pragma('trusted_schema = OFF');
     this.db.pragma('foreign_keys = ON');
-    this.db.pragma('journal_mode = DELETE');
+    if (readOnly) this.db.pragma('query_only = ON');
+    else this.db.pragma('journal_mode = DELETE');
     this.db.pragma('busy_timeout = 5000');
     this.direct = {
       run: async (sql, parameters = []) => {

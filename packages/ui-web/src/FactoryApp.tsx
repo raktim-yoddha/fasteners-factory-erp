@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -41,6 +41,8 @@ import {
   type PendingCommandStore,
   type TeamAuthPort,
   type TeamAdministrationPort,
+  type SnapshotRecoveryPort,
+  type RecoveryJournal,
 } from '@fasteners/application';
 import { Button, EmptyState, PageHeading, Panel } from './components';
 import { FactoryProvider } from './context';
@@ -53,12 +55,17 @@ import { TeamAdministration } from './views/TeamAdministration';
 import { BackupDialog } from './views/BackupDialog';
 import { CreateSolo } from './views/CreateSolo';
 import { TeamOnboarding } from './views/TeamOnboarding';
+import { RestoreDialog } from './views/RestoreDialog';
 export interface FactoryAppProps {
   platform: 'web' | 'desktop';
   pendingStore: PendingCommandStore;
   local: () => Promise<Repository>;
   team?: { repository: Repository; auth: TeamAuthPort; administration?: TeamAdministrationPort };
-  backup?: { export: (passphrase: string) => Promise<void> };
+  backup?: {
+    export: (passphrase: string) => Promise<void>;
+    recovery?: SnapshotRecoveryPort;
+    recoveryJournal?: RecoveryJournal;
+  };
 }
 const navigation = [
   {
@@ -103,6 +110,8 @@ export function FactoryApp(props: FactoryAppProps) {
   const [busy, setBusy] = useState(false);
   const [unknown, setUnknown] = useState<CommandRequest | null>(null);
   const [backupOpen, setBackupOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [recoveryPending, setRecoveryPending] = useState(false);
   const [filter, setFilter] = useState('');
   const [sidebar, setSidebar] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -116,6 +125,11 @@ export function FactoryApp(props: FactoryAppProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const generation = useRef(0);
+  const checkRecoveryPending = useCallback(() => {
+    for (const workspace of workspaces)
+      if (props.pendingStore.read('local-owner', { kind: 'solo', workspaceId: workspace.id }))
+        throw new Error('Resolve the pending business request in its workspace before restoring.');
+  }, [workspaces, props.pendingStore]);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     try {
@@ -152,14 +166,19 @@ export function FactoryApp(props: FactoryAppProps) {
         throw new Error(
           'Team mode needs a configured Supabase URL and publishable key. Solo works without them.',
         );
+      const pendingRestore = value === 'solo' ? props.backup?.recoveryJournal?.read() : null;
       await queryClient.cancelQueries();
       queryClient.clear();
       generation.current++;
       setRepository(selected);
       setMode(value);
       setAuthority(null);
-      if (value === 'solo') setWorkspaces(await selected.listWorkspaces());
-      else {
+      if (value === 'solo') {
+        setRecoveryPending(Boolean(pendingRestore));
+        setRestoreOpen(Boolean(pendingRestore));
+        setUserId('local-owner');
+        setWorkspaces(await selected.listWorkspaces());
+      } else {
         const user = await props.team!.auth.currentUser();
         setUserId(user?.id ?? 'signed-out');
         setWorkspaces(user ? await selected.listWorkspaces() : []);
@@ -187,7 +206,7 @@ export function FactoryApp(props: FactoryAppProps) {
     navigate('/app/overview');
   }
   async function selectWorkspace(id: string) {
-    if (busy || unknown || !repository) return;
+    if (busy || unknown || recoveryPending || !repository) return;
     setBusy(true);
     try {
       let selected: Authority =
@@ -368,7 +387,7 @@ export function FactoryApp(props: FactoryAppProps) {
   if (!authority)
     return (
       <main className="workspace-picker">
-        <Button variant="ghost" onClick={() => void switchMode()}>
+        <Button variant="ghost" disabled={recoveryPending} onClick={() => void switchMode()}>
           ← Change mode
         </Button>
         <PageHeading
@@ -409,13 +428,41 @@ export function FactoryApp(props: FactoryAppProps) {
                   {workspace.currency} · {workspace.timezone}
                 </p>
               </div>
-              <Button disabled={busy} onClick={() => void selectWorkspace(workspace.id)}>
+              <Button
+                disabled={busy || recoveryPending}
+                onClick={() => void selectWorkspace(workspace.id)}
+              >
                 Open workspace <ArrowUpRight size={16} />
               </Button>
             </Panel>
           ))}
         </div>
-        {mode === 'solo' && repository && !busy ? (
+        {mode === 'solo' && props.backup?.recovery && props.backup.recoveryJournal ? (
+          <>
+            <Button variant="secondary" disabled={busy} onClick={() => setRestoreOpen(true)}>
+              Restore encrypted snapshot
+            </Button>
+            {restoreOpen ? (
+              <RestoreDialog
+                recovery={props.backup.recovery}
+                journal={props.backup.recoveryJournal}
+                checkPending={checkRecoveryPending}
+                onPendingChange={setRecoveryPending}
+                onClose={() => setRestoreOpen(false)}
+                onActivated={async (restored) => {
+                  generation.current++;
+                  await queryClient.cancelQueries();
+                  queryClient.clear();
+                  setWorkspaces(restored);
+                  setRecoveryPending(false);
+                  setStatus('Restored snapshot committed. Previous database retained.');
+                  setError('');
+                }}
+              />
+            ) : null}
+          </>
+        ) : null}
+        {mode === 'solo' && repository && !busy && !recoveryPending ? (
           <CreateSolo
             repository={repository}
             onCreated={async (workspace) => {

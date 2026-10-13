@@ -6,6 +6,7 @@ import {
   type CommandRequest,
 } from '@fasteners/contracts';
 import type { PendingCommandStore } from '@fasteners/application';
+export { LocalRecoveryJournal } from './recovery';
 
 export class PendingJournal implements PendingCommandStore {
   constructor(

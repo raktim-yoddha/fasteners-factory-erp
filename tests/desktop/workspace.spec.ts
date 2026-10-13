@@ -122,10 +122,70 @@ test('Electron stores SAMPLE data in utility-process SQLite and reopens it after
         'createWorkspace',
         'execute',
         'exportEncryptedDatabase',
+        'previewRestore',
+        'activateRestore',
+        'cancelRestore',
         'listWorkspaces',
         'snapshot',
       ].sort(),
     );
+    await application.evaluate(({ dialog }, filePath) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [filePath] });
+    }, filename);
+    await reopened.getByRole('button', { name: 'Change mode', exact: true }).click();
+    await reopened.getByRole('button', { name: 'Start locally' }).click();
+    await reopened.getByRole('button', { name: 'Restore encrypted snapshot', exact: true }).click();
+    await reopened
+      .getByLabel('Backup passphrase (at least 12 characters)')
+      .fill('SAMPLE-wrong-passphrase');
+    await reopened.getByRole('button', { name: 'Choose snapshot and review' }).click();
+    await expect(reopened.getByRole('alert')).toContainText('authentication');
+    await reopened
+      .getByLabel('Backup passphrase (at least 12 characters)')
+      .fill('SAMPLE-test-passphrase-123');
+    await reopened.getByRole('button', { name: 'Choose snapshot and review' }).click();
+    await expect(
+      reopened.getByRole('button', { name: 'Activate reviewed snapshot' }),
+    ).toBeVisible();
+    await reopened.getByRole('button', { name: 'Activate reviewed snapshot' }).click();
+    await expect(reopened.getByRole('dialog')).toHaveCount(0);
+    expect(await reopened.evaluate(() => localStorage.getItem('fasteners-restore:v1'))).toBeNull();
+    // Activate another reviewed copy of the same fictional snapshot, retaining its journal to simulate a lost acknowledgment.
+    await reopened.evaluate(async () => {
+      const preview = await globalThis.window.factory.previewRestore('SAMPLE-test-passphrase-123');
+      localStorage.setItem('fasteners-restore:v1', JSON.stringify(preview));
+      await globalThis.window.factory.activateRestore(preview.token);
+    });
+    await application.evaluate(({ app }) => app.exit(0));
+    application = await launch();
+    const restored = await application.firstWindow();
+    await restored.getByRole('button', { name: 'Start locally' }).click();
+    await expect(
+      restored.getByText(
+        'Confirmation unknown — retry the original restore token to resolve the selected database.',
+      ),
+    ).toBeVisible();
+    await expect(restored.getByRole('button', { name: 'Open workspace' })).toBeDisabled();
+    await restored.getByRole('button', { name: 'Retry original restore' }).click();
+    await expect(restored.getByRole('dialog')).toHaveCount(0);
+    await restored.getByRole('button', { name: 'Open workspace' }).click();
+    const restoredSnapshot = await restored.evaluate(async () => {
+      const workspace = (await globalThis.window.factory.listWorkspaces())[0]!;
+      return globalThis.window.factory.snapshot({ kind: 'solo', workspaceId: workspace.id });
+    });
+    expect(restoredSnapshot.lots).toHaveLength(1);
+    expect(
+      restoredSnapshot.audit.filter((event) => event.command === 'receive_goods'),
+    ).toHaveLength(1);
+    const oldDatabase = join(userData, 'solo', 'factory-solo.sqlite3');
+    expect((await readFile(oldDatabase)).slice(0, 16).toString()).toBe('SQLite format 3\0');
+    await restored.evaluate(() => localStorage.setItem('fasteners-restore:v1', '{}'));
+    await restored.getByRole('button', { name: 'Change mode', exact: true }).click();
+    await restored.getByRole('button', { name: 'Start locally' }).click();
+    await expect(restored.getByRole('alert')).toContainText(
+      'Restore confirmation storage is unavailable or invalid',
+    );
+    await expect(restored.getByRole('button', { name: 'Create empty workspace' })).toHaveCount(0);
     await application.evaluate(({ app }) => app.exit(0));
     application = undefined;
   } finally {

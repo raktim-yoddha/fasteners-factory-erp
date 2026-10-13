@@ -1,13 +1,10 @@
-import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import {
   authoritySchema,
   parseCommand,
   DomainError,
   type CreateWorkspace,
 } from '@fasteners/contracts';
-import { initialize, LocalRepository } from '@fasteners/local-domain';
-import { DesktopSqlDriver } from '@fasteners/sqlite-desktop';
+import { ManagedDatabase } from './managed-database';
 interface ParentPort {
   on(
     event: 'message',
@@ -19,10 +16,7 @@ const port = (process as NodeJS.Process & { parentPort: ParentPort }).parentPort
 const directory = process.argv[2];
 if (!directory) throw new Error('A managed database directory is required.');
 async function start() {
-  await mkdir(directory!, { recursive: true });
-  const driver = new DesktopSqlDriver(join(directory!, 'factory-solo.sqlite3'));
-  await initialize(driver);
-  const repository = new LocalRepository(driver, 'local-owner:desktop');
+  const managed = await ManagedDatabase.open(directory!);
   let queue: Promise<unknown> = Promise.resolve();
   port.on('message', (event) => {
     const packet = event.data;
@@ -31,22 +25,34 @@ async function start() {
         let value: unknown;
         switch (packet.method) {
           case 'listWorkspaces':
-            value = await repository.listWorkspaces();
+            value = await managed.repository.listWorkspaces();
             break;
           case 'createWorkspace':
-            value = await repository.createWorkspace(packet.args[0] as CreateWorkspace);
+            value = await managed.repository.createWorkspace(packet.args[0] as CreateWorkspace);
             break;
           case 'snapshot':
-            value = await repository.snapshot(authoritySchema.parse(packet.args[0]));
+            value = await managed.repository.snapshot(authoritySchema.parse(packet.args[0]));
             break;
           case 'execute':
-            value = await repository.execute(parseCommand(packet.args[0]));
+            value = await managed.repository.execute(parseCommand(packet.args[0]));
             break;
           case 'exportDatabase':
-            value = await driver.exportDatabase();
+            value = await managed.driver.exportDatabase();
+            break;
+          case 'previewRestore':
+            value = await managed.preview(
+              new Uint8Array(packet.args[0] as Uint8Array),
+              String(packet.args[1]),
+            );
+            break;
+          case 'activateRestore':
+            value = await managed.activate(String(packet.args[0]));
+            break;
+          case 'cancelRestore':
+            managed.cancel(String(packet.args[0]));
             break;
           case 'close':
-            await repository.close();
+            await managed.close();
             break;
           default:
             throw new DomainError('INVALID_INPUT', 'Unsupported database operation.');

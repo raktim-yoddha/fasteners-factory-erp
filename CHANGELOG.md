@@ -14,4 +14,6 @@
 - Added minimal scoped order/PO projections for Stores and Dispatch, retaining commercial-field restrictions and supplier references in immutable receipt audit evidence.
 - Made encrypted desktop exports flush temporary ciphertext before atomic replacement; failure tests preserve the previous backup and remove partial files.
 
+- Added validated desktop snapshot preview and explicit activation through a managed selector, retaining previous database bytes and the original restore token after restart. Corrupt/unresolved recovery journals block local writes.
+
 This version is not the completed M0–M10 ERP or a certified factory rollout. Feature-level acceptance status is recorded in features.md and docs/testing.md.

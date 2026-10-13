@@ -1,7 +1,7 @@
 import { utilityProcess, type UtilityProcess } from 'electron';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { DomainError } from '@fasteners/contracts';
+import { DomainError, errorCodes } from '@fasteners/contracts';
 interface Reply {
   id?: string;
   ready?: boolean;
@@ -36,7 +36,7 @@ export class DatabaseClient {
         else
           callback.reject(
             new DomainError(
-              reply.error?.code === 'INVALID_INPUT' ? 'INVALID_INPUT' : 'STORAGE_UNAVAILABLE',
+              errorCodes.find((code) => code === reply.error?.code) ?? 'STORAGE_UNAVAILABLE',
               reply.error?.message ?? 'Database request failed.',
             ),
           );

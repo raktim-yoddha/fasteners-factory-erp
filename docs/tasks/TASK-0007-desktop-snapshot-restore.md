@@ -20,4 +20,4 @@ Test actual SQLite round trips, incompatible/extended schemas, missing reference
 
 ## State
 
-Implementation in progress. Complete M9 portable restore/cutover and real device/production recovery remain pending.
+Implementation complete for the desktop database-only slice. Validation: strict typecheck, lint/contracts and production web build; 44 tests across 7 files including 18 new restore cases; browser persistence acceptance; Electron and packaged executable preview/activation/restart acceptance. The dated restore evidence records the unsigned installer identity. Complete M9 portable attachment/cross-runtime restore, retained raw-file recovery UX, binary rollback compatibility, cutover and real device/production recovery remain pending.

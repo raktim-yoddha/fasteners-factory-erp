@@ -253,6 +253,14 @@ export interface CreateWorkspace {
   currency: string;
   timezone: string;
 }
+export interface RecoveryPreview {
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+  scope: 'all-device-solo-workspaces';
+  workspaces: Workspace[];
+  counts: { records: string; lots: string; ledger: string; audit: string };
+}
 export interface Repository {
   listWorkspaces(): Promise<Workspace[]>;
   createWorkspace(input: CreateWorkspace): Promise<Workspace>;
@@ -278,4 +286,5 @@ export {
   commandResultSchema,
   administrationSnapshotSchema,
   invitationResultSchema,
+  recoveryPreviewSchema,
 } from './responses';

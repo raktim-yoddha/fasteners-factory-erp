@@ -11,6 +11,8 @@ Prepared: 2026-10-13. Status is a source-delivery assessment, not factory accept
 | [0005](TASK-0005-desktop-backend-integrity.md) | Desktop/native boundary and multi-role authority continuation | Implemented; evidence recorded          | Packaged runtime, exact revisions, durable confirmation, PostgreSQL/Auth gates and recorded unsigned artifact |
 | [0006](TASK-0006-git-checkpoints.md)           | Independent project repository and local commit policy        | Implemented locally; push not requested | Correct Git root/origin, preserved parent, exact handoff bytes, identical contracts and clean committed work  |
 
+[0007 — Desktop snapshot restore](TASK-0007-desktop-snapshot-restore.md): implemented and locally validated; database-only schema/data/failure preservation and packaged preview/activation/restart proof recorded.
+
 M0–M10 scope and acceptance gates are defined in [PID](../../PID.md). Feature-level implementation and pending proof are tracked in [features](../../features.md). Unbuilt milestone features remain backlog even when their navigation entry or generic record kind exists.
 
 Owner steering, 2026-10-13: work directly without subagents. Prioritize Electron desktop, then the multi-person/multi-role backend. Mobile is deferred. All remaining tasks are owned by the primary agent.

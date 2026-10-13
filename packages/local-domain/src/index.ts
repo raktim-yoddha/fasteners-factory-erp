@@ -14,7 +14,8 @@ import { schema, schemaVersion, type SqlDriver, type SqlRow } from '@fasteners/s
 import { executeLocal } from './commands';
 import { balance, mapRecord, now, one, reserved, text, uuid } from './database';
 
-const schemaChecksum = 'fasteners-sqlite-v1-core-2026-10-13';
+export const schemaChecksum = 'fasteners-sqlite-v1-core-2026-10-13';
+export { validateRecoveryData } from './recovery-validation';
 export async function initialize(driver: SqlDriver): Promise<void> {
   await driver.run(schema);
   const versions = await driver.all('SELECT * FROM schema_versions ORDER BY version DESC');

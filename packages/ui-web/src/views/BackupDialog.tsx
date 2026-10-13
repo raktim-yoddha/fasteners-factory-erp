@@ -40,8 +40,8 @@ export function BackupDialog({
       >
         <p className="notice">
           Includes every solo workspace on this device. This is a database-only encrypted snapshot;
-          portable files and restore activation remain pending. Keep the passphrase separately.
-          There is no account-based password recovery.
+          portable files remain pending. Desktop restore is available from the local workspace
+          selector. Keep the passphrase separately. There is no account-based password recovery.
         </p>
         <Field label="Snapshot passphrase (at least 12 characters)">
           <input
