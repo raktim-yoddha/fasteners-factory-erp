@@ -1,0 +1,11 @@
+{
+  "name": "@fasteners/test-fixtures",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/contracts": "workspace:*",
+    "@fasteners/application": "workspace:*"
+  }
+}

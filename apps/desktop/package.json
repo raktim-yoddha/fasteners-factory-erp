@@ -1,0 +1,39 @@
+{
+  "name": "@fasteners/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "dev": "node scripts/build.mjs && electron .",
+    "build": "node scripts/build.mjs",
+    "package": "pnpm build && electron-builder --win --x64",
+    "rebuild": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@fasteners/contracts": "workspace:*",
+    "@fasteners/backup": "workspace:*",
+    "@fasteners/local-domain": "workspace:*",
+    "@fasteners/sqlite-desktop": "workspace:*",
+    "@fasteners/ui-web": "workspace:*",
+    "@fasteners/cloud-repository": "workspace:*",
+    "better-sqlite3": "13.0.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-router-dom": "7.18.4",
+    "@tanstack/react-query": "5.104.2",
+    "zod": "4.6.7",
+    "@fasteners/client-storage": "workspace:*"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "vite": "8.3.4",
+    "@vitejs/plugin-react": "6.1.2",
+    "@tailwindcss/vite": "4.3.3",
+    "tailwindcss": "4.3.3",
+    "esbuild": "0.28.0"
+  },
+  "description": "Local-first Fasteners Factory ERP desktop with explicit Supabase team authority",
+  "author": "Fasteners Factory ERP"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@fasteners/client-storage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/application": "workspace:*",
+    "@fasteners/contracts": "workspace:*"
+  }
+}

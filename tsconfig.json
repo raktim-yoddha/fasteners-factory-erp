@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": [
+    "apps/web",
+    "apps/desktop/src",
+    "packages",
+    "tests",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": [
+    "packages/sqlite-mobile",
+    "packages/ui-native",
+    "apps/mobile",
+    "node_modules",
+    "**/dist"
+  ]
+}

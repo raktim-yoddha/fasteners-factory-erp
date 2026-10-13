@@ -1,0 +1,21 @@
+appId: com.fastenersfactory.erp
+productName: Fasteners Factory ERP
+directories:
+  output: release
+files:
+  - dist/**
+  - package.json
+asar: true
+asarUnpack:
+  - '**/better-sqlite3/**'
+npmRebuild: true
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+publish: null

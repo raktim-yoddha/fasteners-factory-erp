@@ -1,0 +1,12 @@
+{
+  "name": "@fasteners/local-domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/contracts": "workspace:*",
+    "@fasteners/domain": "workspace:*",
+    "@fasteners/sqlite-schema": "workspace:*"
+  }
+}

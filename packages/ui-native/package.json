@@ -1,0 +1,1 @@
+{ "name": "@fasteners/ui-native", "version": "0.1.0", "private": true, "type": "module", "exports": "./src/index.tsx", "dependencies": { "@fasteners/design-tokens": "workspace:*", "react": "19.2.3", "react-native": "0.86.3" } }

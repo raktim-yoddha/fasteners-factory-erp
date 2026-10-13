@@ -1,0 +1,11 @@
+{
+  "name": "@fasteners/sqlite-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/sqlite-schema": "workspace:*",
+    "better-sqlite3": "13.0.3"
+  }
+}

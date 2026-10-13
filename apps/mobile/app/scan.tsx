@@ -1,0 +1,9 @@
+import { useState } from 'react';
+import { SafeAreaView,ScrollView,Text } from 'react-native';
+import { CameraView,useCameraPermissions } from 'expo-camera';
+import { router } from 'expo-router';
+import { Button,Card,Field,Heading,Hint } from '@fasteners/ui-native';
+import { useMobile } from '../src/state';
+export default function Scan(){const[permission,requestPermission]=useCameraPermissions();const[code,setCode]=useState('');const[scanning,setScanning]=useState(false);const[message,setMessage]=useState('');const{snapshot}=useMobile();
+  function lookup(value:string){setScanning(false);setCode(value);const lot=snapshot?.lots.find(row=>row.code===value||row.id===value);if(lot)router.replace({pathname:'/lot',params:{id:lot.id}});else setMessage('Code is not in the currently loaded workspace snapshot. Refresh or use the scoped record list.');}
+  return <SafeAreaView style={{flex:1,backgroundColor:'#f4f5f7'}}><ScrollView contentContainerStyle={{padding:20,gap:12}}><Heading>Scan a lot</Heading><Hint>Camera permission is optional. Manual code entry always works.</Hint>{message?<Hint error>{message}</Hint>:null}<Card><Field label="Lot code or ID" value={code} onChangeText={setCode}/><Button label="Look up code" onPress={()=>lookup(code.trim())}/></Card>{permission?.granted?<><Button label={scanning?'Stop camera':'Scan with camera'} secondary onPress={()=>setScanning(!scanning)}/>{scanning?<CameraView style={{height:320}} barcodeScannerSettings={{barcodeTypes:['qr','code128','code39','ean13']}} onBarcodeScanned={({data})=>lookup(data)}/>:null}</>:<Card><Text>Camera access {permission?.canAskAgain===false?'denied. Enable it in Android settings or enter a code manually.':'has not been granted.'}</Text><Button label="Allow camera scanning" disabled={permission?.canAskAgain===false} onPress={()=>void requestPermission()}/></Card>}<Button label="Back to workspace" secondary onPress={()=>router.replace('/workspace')}/></ScrollView></SafeAreaView>;}

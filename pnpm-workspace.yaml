@@ -1,0 +1,42 @@
+packages:
+  - apps/*
+  - packages/*
+  - '!apps/mobile'
+  - '!packages/sqlite-mobile'
+  - '!packages/ui-native'
+allowBuilds:
+  better-sqlite3: true
+  electron: true
+  electron-winstaller: false
+  esbuild: true
+  supabase: true
+minimumReleaseAgeExclude:
+  - '@radix-ui/react-slot@1.5.0'
+  - '@typescript-eslint/eslint-plugin@8.71.2'
+  - '@typescript-eslint/parser@8.71.2'
+  - '@typescript-eslint/project-service@8.71.2'
+  - '@typescript-eslint/scope-manager@8.71.2'
+  - '@typescript-eslint/tsconfig-utils@8.71.2'
+  - '@typescript-eslint/type-utils@8.71.2'
+  - '@typescript-eslint/types@8.71.2'
+  - '@typescript-eslint/typescript-estree@8.71.2'
+  - '@typescript-eslint/utils@8.71.2'
+  - '@typescript-eslint/visitor-keys@8.71.2'
+  - '@vitest/mocker@5.0.4'
+  - '@vitest/spy@5.0.4'
+  - typescript-eslint@8.71.2
+  - vitest@5.0.4
+  - zod@4.6.7
+  - '@expo/cli@57.0.29'
+  - '@expo/fingerprint@0.20.14'
+  - '@expo/inline-modules@0.1.8'
+  - '@expo/local-build-cache-provider@57.0.9'
+  - '@expo/prebuild-config@57.0.18'
+  - '@expo/ui@57.0.23'
+  - babel-preset-expo@57.0.15
+  - expo-crypto@57.0.4
+  - expo-modules-autolinking@57.0.15
+  - expo-modules-core@57.0.22
+  - expo-modules-jsi@57.1.2
+  - expo-router@57.0.26
+  - expo@57.0.28

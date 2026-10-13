@@ -1,0 +1,1 @@
+-- Intentionally empty. Fictional operating data is opt-in through application commands.

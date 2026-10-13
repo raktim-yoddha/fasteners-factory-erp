@@ -1,0 +1,12 @@
+{
+  "name": "@fasteners/cloud-repository",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/contracts": "workspace:*",
+    "@fasteners/application": "workspace:*",
+    "@supabase/supabase-js": "2.117.3"
+  }
+}

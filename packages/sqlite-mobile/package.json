@@ -1,0 +1,1 @@
+{ "name": "@fasteners/sqlite-mobile", "version": "0.1.0", "private": true, "type": "module", "exports": "./src/index.ts", "dependencies": { "@fasteners/sqlite-schema": "workspace:*", "expo-sqlite": "57.0.4" } }

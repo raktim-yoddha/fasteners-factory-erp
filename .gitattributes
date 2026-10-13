@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Preserve the supplied handoff bytes and checksum on every platform.
+docs/handoff.md -text
+
+# CLI-generated source is not manually reformatted.
+packages/cloud-repository/src/generated/database.ts whitespace=-blank-at-eol

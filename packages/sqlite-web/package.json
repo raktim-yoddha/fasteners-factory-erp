@@ -1,0 +1,13 @@
+{
+  "name": "@fasteners/sqlite-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@fasteners/contracts": "workspace:*",
+    "@fasteners/local-domain": "workspace:*",
+    "@fasteners/sqlite-schema": "workspace:*",
+    "@sqlite.org/sqlite-wasm": "3.53.4-build2"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "fasteners-factory-erp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.3",
+  "engines": {
+    "node": ">=24.11.0 <27"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @fasteners/web dev",
+    "dev:desktop": "pnpm --filter @fasteners/desktop dev",
+    "dev:mobile": "node scripts/validation/deferred-mobile.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint . && node scripts/validation/contracts.mjs",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:local": "vitest run tests/local",
+    "test:parity": "vitest run tests/parity",
+    "test:restore": "vitest run tests/backup",
+    "test:db": "node scripts/validation/database.mjs",
+    "test:api": "node scripts/validation/auth-api.mjs",
+    "e2e:web": "playwright test --project=web",
+    "e2e:desktop": "playwright test --project=desktop",
+    "e2e:desktop:packaged": "node scripts/validation/packaged-desktop.mjs",
+    "release:checksums": "node scripts/operations/release-checksums.mjs",
+    "e2e:mobile": "node scripts/validation/deferred-mobile.mjs",
+    "build:web": "pnpm --filter @fasteners/web build",
+    "build:desktop": "pnpm --filter @fasteners/desktop build",
+    "build:mobile": "node scripts/validation/deferred-mobile.mjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build:web",
+    "db:types": "node scripts/operations/database-types.mjs",
+    "db:start": "node scripts/operations/local-backend.mjs start",
+    "db:stop": "node scripts/operations/local-backend.mjs stop"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.12.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "supabase": "2.120.0",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.4",
+    "vite": "8.3.4"
+  }
+}

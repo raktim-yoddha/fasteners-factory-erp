@@ -1,0 +1,13 @@
+node_modules
+**/dist
+**/release
+test-results
+playwright-report
+pnpm-lock.yaml
+docs/handoff.md
+packages/cloud-repository/src/generated
+apps/mobile
+packages/ui-native
+packages/sqlite-mobile
+supabase/.temp
+supabase/migrations
