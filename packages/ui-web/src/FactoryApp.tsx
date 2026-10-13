@@ -39,6 +39,7 @@ import {
   request,
   capability,
   type PendingCommandStore,
+  type CompanySetupStore,
   type TeamAuthPort,
   type TeamAdministrationPort,
   type SnapshotRecoveryPort,
@@ -60,7 +61,12 @@ export interface FactoryAppProps {
   platform: 'web' | 'desktop';
   pendingStore: PendingCommandStore;
   local: () => Promise<Repository>;
-  team?: { repository: Repository; auth: TeamAuthPort; administration?: TeamAdministrationPort };
+  team?: {
+    repository: Repository;
+    auth: TeamAuthPort;
+    administration?: TeamAdministrationPort;
+    companySetupStore: CompanySetupStore;
+  };
   backup?: {
     export: (passphrase: string) => Promise<void>;
     recovery?: SnapshotRecoveryPort;
@@ -112,6 +118,7 @@ export function FactoryApp(props: FactoryAppProps) {
   const [backupOpen, setBackupOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [recoveryPending, setRecoveryPending] = useState(false);
+  const [companySetupBlocked, setCompanySetupBlocked] = useState(false);
   const [filter, setFilter] = useState('');
   const [sidebar, setSidebar] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -206,7 +213,7 @@ export function FactoryApp(props: FactoryAppProps) {
     navigate('/app/overview');
   }
   async function selectWorkspace(id: string) {
-    if (busy || unknown || recoveryPending || !repository) return;
+    if (busy || unknown || recoveryPending || companySetupBlocked || !repository) return;
     setBusy(true);
     try {
       let selected: Authority =
@@ -303,7 +310,7 @@ export function FactoryApp(props: FactoryAppProps) {
     return execute(request(authority, command, payload, revision));
   }
   async function switchMode() {
-    if (busy || unknown) return;
+    if (busy || unknown || companySetupBlocked) return;
     generation.current++;
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -387,7 +394,11 @@ export function FactoryApp(props: FactoryAppProps) {
   if (!authority)
     return (
       <main className="workspace-picker">
-        <Button variant="ghost" disabled={recoveryPending} onClick={() => void switchMode()}>
+        <Button
+          variant="ghost"
+          disabled={recoveryPending || companySetupBlocked || busy}
+          onClick={() => void switchMode()}
+        >
           ← Change mode
         </Button>
         <PageHeading
@@ -407,6 +418,8 @@ export function FactoryApp(props: FactoryAppProps) {
         {mode === 'team' && props.team ? (
           <TeamOnboarding
             auth={props.team.auth}
+            companySetupStore={props.team.companySetupStore}
+            onBlockedChange={setCompanySetupBlocked}
             onChange={async () => {
               const user = await props.team!.auth.currentUser();
               generation.current++;
@@ -429,7 +442,7 @@ export function FactoryApp(props: FactoryAppProps) {
                 </p>
               </div>
               <Button
-                disabled={busy || recoveryPending}
+                disabled={busy || recoveryPending || companySetupBlocked}
                 onClick={() => void selectWorkspace(workspace.id)}
               >
                 Open workspace <ArrowUpRight size={16} />

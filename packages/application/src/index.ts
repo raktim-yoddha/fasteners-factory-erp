@@ -7,6 +7,11 @@ import type {
   Repository,
 } from '@fasteners/contracts';
 export { capability } from './capabilities';
+export {
+  CompanySetupController,
+  type CompanySetupStore,
+  type CompanySetupCommit,
+} from './company-setup';
 export { recordOptions, orderLabel } from './operational-reads';
 export type { SnapshotRecoveryPort, RecoveryJournal } from './recovery';
 export type SaveState = 'idle' | 'submitting' | 'committed' | 'unsent' | 'unknown' | 'failed';
@@ -62,7 +67,8 @@ export interface TeamAuthPort {
       timezone: string;
     },
     key: string,
-  ): Promise<void>;
+    expectedActorId: string,
+  ): Promise<string>;
   acceptInvitation(token: string): Promise<void>;
   changePassword(password: string): Promise<void>;
   enrollMfa(): Promise<{ id: string; qrCode: string; secret: string }>;

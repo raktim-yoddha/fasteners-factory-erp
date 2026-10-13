@@ -1,26 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
-import type { TeamAuthPort } from '@fasteners/application';
+import { useCallback, useEffect, useState } from 'react';
+import type { CompanySetupStore, TeamAuthPort } from '@fasteners/application';
 import { Badge, Button, Field, Panel } from '../components';
 import { AuthSecurity } from './AuthSecurity';
+import { CompanySetup } from './CompanySetup';
 export function TeamOnboarding({
   auth,
   onChange,
+  companySetupStore,
+  onBlockedChange,
 }: {
   auth: TeamAuthPort;
   onChange: () => Promise<void>;
+  companySetupStore: CompanySetupStore;
+  onBlockedChange: (blocked: boolean) => void;
 }) {
   const [user, setUser] = useState<Awaited<ReturnType<TeamAuthPort['currentUser']>>>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [plantName, setPlantName] = useState('Main plant');
-  const [warehouseName, setWarehouseName] = useState('Main warehouse');
-  const [currency, setCurrency] = useState('INR');
-  const [timezone, setTimezone] = useState('Asia/Kolkata');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [token, setToken] = useState('');
-  const companyKey = useRef(crypto.randomUUID());
+  const [setupBlocked, setSetupBlocked] = useState(false);
+  const updateSetupBlocked = useCallback(
+    (blocked: boolean) => {
+      setSetupBlocked(blocked);
+      onBlockedChange(blocked);
+    },
+    [onBlockedChange],
+  );
   useEffect(() => {
     void auth
       .currentUser()
@@ -128,55 +135,14 @@ export function TeamOnboarding({
             </Button>
           </div>
           {user.verified ? (
-            <form
-              className="form-grid"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void action(async () => {
-                  await auth.createCompany(
-                    { name, plantName, warehouseName, currency, timezone },
-                    companyKey.current,
-                  );
-                  companyKey.current = crypto.randomUUID();
-                  setName('');
-                });
-              }}
-            >
-              <h3>Create company</h3>
-              <Field label="Company name">
-                <input required value={name} onChange={(event) => setName(event.target.value)} />
-              </Field>
-              <Field label="Initial plant">
-                <input
-                  required
-                  value={plantName}
-                  onChange={(event) => setPlantName(event.target.value)}
-                />
-              </Field>
-              <Field label="Initial warehouse">
-                <input
-                  required
-                  value={warehouseName}
-                  onChange={(event) => setWarehouseName(event.target.value)}
-                />
-              </Field>
-              <Field label="Currency">
-                <input
-                  required
-                  pattern="[A-Z]{3}"
-                  value={currency}
-                  onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                />
-              </Field>
-              <Field label="Timezone">
-                <input
-                  required
-                  value={timezone}
-                  onChange={(event) => setTimezone(event.target.value)}
-                />
-              </Field>
-              <Button disabled={busy}>Create company atomically</Button>
-            </form>
+            <CompanySetup
+              key={user.id}
+              actorId={user.id}
+              auth={auth}
+              store={companySetupStore}
+              onChange={onChange}
+              onBlockedChange={updateSetupBlocked}
+            />
           ) : null}
           {user.verified ? (
             <form
@@ -198,7 +164,7 @@ export function TeamOnboarding({
                   autoComplete="off"
                 />
               </Field>
-              <Button disabled={busy}>Accept invitation</Button>
+              <Button disabled={busy || setupBlocked}>Accept invitation</Button>
             </form>
           ) : null}
           {user.verified ? <AuthSecurity auth={auth} /> : null}

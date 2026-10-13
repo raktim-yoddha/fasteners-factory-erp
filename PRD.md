@@ -35,3 +35,7 @@ The feature matrix is mandatory when assessing completion. Unimplemented or unau
 ## Defaults and acceptance
 
 English, Windows 11 x64, INR and `Asia/Kolkata`, with currency/timezone explicitly configured at workspace/company creation. Fictional fixtures are opt-in and labeled SAMPLE. Physical printer/scanner acceptance, signing, hosted configuration and factory pilot remain separate proof. No statutory compliance is inferred from pricing, printouts or CSV.
+
+## Delivered company setup recovery slice
+
+Verified Team company creation retains the original fields and idempotency key on the device before sending. Confirmation unknown survives restart; retry uses the original account, backend and request. Another request cannot replace it. A storage failure or competing local writer blocks dispatch. A committed company remains committed when the company-list refresh fails, and the UI offers an independent refresh. This does not add solo synchronization or hosted infrastructure. Invitation/access/plant/ownership administration transport recovery remains pending.

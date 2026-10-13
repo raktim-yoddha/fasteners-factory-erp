@@ -58,16 +58,39 @@ try {
     authority: { kind: 'team', companyId: randomUUID() },
   });
   check(Boolean(tenant.error), 'Signed nonmember cannot read a forged tenant');
-  const mutation = await client
-    .from('records')
-    .insert({
-      company_id: randomUUID(),
-      plant_id: randomUUID(),
-      kind: 'item',
-      code: 'SAMPLE-FORGED',
-      name: 'SAMPLE unauthorized',
-      fields: { unit: 'pcs' },
-    });
+  const invalidCompany = await client
+    .rpc('create_company', {
+      input: {
+        name: 'SAMPLE rejected setup',
+        plantName: 'SAMPLE Plant',
+        warehouseName: 'SAMPLE Warehouse',
+        currency: 'INR',
+        timezone: 'SAMPLE/InvalidTimezone',
+      },
+      request_key: randomUUID(),
+    })
+    .setHeader('Authorization', `Bearer ${login.data.session.access_token}`);
+  check(
+    invalidCompany.status === 400 &&
+      invalidCompany.error?.code === 'P0001' &&
+      invalidCompany.error.message === 'INVALID_INPUT',
+    'Verified-token RPC exposes a definitive company setup rollback response',
+  );
+  const afterRejectedSetup = await client.rpc('list_workspaces');
+  check(
+    !afterRejectedSetup.error &&
+      Array.isArray(afterRejectedSetup.data) &&
+      afterRejectedSetup.data.length === 0,
+    'Rejected company setup creates no membership or discoverable company',
+  );
+  const mutation = await client.from('records').insert({
+    company_id: randomUUID(),
+    plant_id: randomUUID(),
+    kind: 'item',
+    code: 'SAMPLE-FORGED',
+    name: 'SAMPLE unauthorized',
+    fields: { unit: 'pcs' },
+  });
   check(Boolean(mutation.error), 'Actual Data API rejects direct business-table mutation');
   const anonRead = await anonymous.rpc('list_workspaces');
   check(Boolean(anonRead.error), 'Anonymous RPC access is denied');

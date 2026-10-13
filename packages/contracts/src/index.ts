@@ -1,4 +1,10 @@
 import { z } from 'zod';
+export {
+  companySetupInputSchema,
+  companySetupRequestSchema,
+  type CompanySetupInput,
+  type CompanySetupRequest,
+} from './company-setup';
 
 export {
   decimalSchema,

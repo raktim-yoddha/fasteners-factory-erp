@@ -89,3 +89,11 @@ Business RPCs acquire shared company/current-actor membership locks, then the ex
 ## Local startup compatibility
 
 The owning local schema service enables connection foreign keys, then reads metadata/version within a serialized transaction before any DDL. Existing databases require the supported explicit object names/types and exactly one supported version/checksum row. Missing history objects, unversioned existing tables, unexpected objects or unknown versions fail without repair. Empty schema plus its version commit atomically. This does not perform a version upgrade or authorize destructive downgrade.
+
+## Database engines and company setup recovery
+
+Solo desktop records use device-local SQLite in the Electron database utility process. Team records use the PostgreSQL database supplied by Supabase, together with Supabase Auth and protected RPC/RLS interfaces. PostgreSQL is the database engine inside the selected Supabase backend, not an additional application backend. Development database assertions run against the isolated local Supabase stack; they do not move solo records online. See [Supabase database overview](https://supabase.com/docs/guides/database/overview).
+
+Company creation has its own strict versioned contract and application controller because no company authority exists yet. The platform supplies an account-and-backend-origin-scoped journal and an exclusive device writer lock. Input and request key are retained before dispatch. The cloud adapter verifies and pins the account token for the RPC, validates the returned company UUID, and reuses the existing atomic PostgreSQL creation/replay transaction. Another account/backend cannot load that journal through its configured adapter. No credentials or invitation tokens are stored there.
+
+An initial recognized rollback may clear its request. An uncertain attempt remains retained even if a subsequent retry is denied. Committed confirmation and local journal cleanup have separate results, and failed list refresh does not undo a commit. Invitation, member/plant and ownership transport recovery remain separate pending slices.

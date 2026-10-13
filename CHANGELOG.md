@@ -28,3 +28,10 @@ This version is not the completed M0–M10 ERP or a certified factory rollout. F
 
 - Made first SQLite schema/version creation atomic and checked existing metadata before DDL.
 - Rejected unsupported, damaged and unversioned databases without recreating missing history; six real SQLite cases prove unchanged bytes and rollback/retry.
+
+### Company setup recovery continuation
+
+- Added strict company setup contracts, a reusable controller and account/backend-scoped durable journal with device writer exclusion.
+- Retained original requests across restart and uncertain retries, pinned verified account tokens, and validated company identifiers and definitive rollback responses.
+- Separated committed company status from local cleanup or list refresh failures. Added thirteen focused tests, two browser fault flows and two real Auth/HTTP rollback checks.
+- Kept Solo on SQLite and Team on Supabase PostgreSQL. No schema migration or synchronization was added.

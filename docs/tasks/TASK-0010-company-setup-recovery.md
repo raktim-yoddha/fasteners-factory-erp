@@ -1,6 +1,6 @@
 # Task 0010 — Durable company setup confirmation
 
-Prepared: 2026-10-13. Owner: primary agent. Milestone: M1. Status: scoped before implementation.
+Prepared: 2026-10-13. Owner: primary agent. Milestone: M1. Status: implemented and locally validated.
 
 ## Outcome and interfaces
 
@@ -20,3 +20,9 @@ Account verification happens before each dispatch. Offline or authentication fai
 ## Exclusions and remaining gates
 
 This slice covers company creation only. Invitation, access, plant and ownership administration transport recovery remain pending. Multi-device account recovery, migration/cutover, signed clean-machine installer evidence and mobile remain pending. No schema change, hosted infrastructure, automatic push or real external mail is involved.
+
+## Delivered evidence
+
+The implemented journal is additionally scoped to the configured Supabase backend origin and uses Web Locks for cross-window exclusion. The cloud adapter pins its captured verified token, so session switching cannot substitute a different actor. Thirteen focused tests pass. Two browser company fault flows and the existing OPFS flow pass; fictional transport state is explicitly isolated in a development-only entry excluded from the production build. The local backend passes 58 authority plus 15 concurrency assertions and 10 actual Auth/HTTP checks. Security advisors report no issues. Current package identity and runtime results are recorded in [dated evidence](../evidence/2026-10-13-company-setup-recovery.md).
+
+No schema migration, database-type edit, dependency update, mobile work, hosted change or Git push was made. Signed-in desktop Team/MFA/device acceptance and broader administration recovery remain pending.

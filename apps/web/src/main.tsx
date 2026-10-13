@@ -1,4 +1,4 @@
-import { PendingJournal } from '@fasteners/client-storage';
+import { CompanySetupJournal, PendingJournal } from '@fasteners/client-storage';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -38,6 +38,7 @@ createRoot(document.getElementById('root')!).render(
                   ? {
                       repository: new CloudRepository(cloud),
                       auth: new CloudAuth(cloud),
+                      companySetupStore: new CompanySetupJournal(() => localStorage, url!),
                       administration: new CloudAdministration(cloud),
                     }
                   : undefined

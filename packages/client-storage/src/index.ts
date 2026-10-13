@@ -7,6 +7,7 @@ import {
 } from '@fasteners/contracts';
 import type { PendingCommandStore } from '@fasteners/application';
 export { LocalRecoveryJournal } from './recovery';
+export { CompanySetupJournal } from './company-setup';
 
 export class PendingJournal implements PendingCommandStore {
   constructor(

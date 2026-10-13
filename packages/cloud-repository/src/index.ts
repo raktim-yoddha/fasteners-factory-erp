@@ -10,6 +10,8 @@ import {
   commandResultSchema,
   administrationSnapshotSchema,
   invitationResultSchema,
+  companySetupInputSchema,
+  identifierSchema,
   type Authority,
   type CommandRequest,
   type CommandResult,
@@ -96,10 +98,53 @@ export class CloudAuth implements TeamAuthPort {
       timezone: string;
     },
     key: string,
-  ): Promise<void> {
+    expectedActorId: string,
+  ): Promise<string> {
     requireOnline();
-    const { error } = await this.client.rpc('create_company', { input, request_key: key });
-    if (error) throw new Error(error.message);
+    if (
+      !companySetupInputSchema.safeParse(input).success ||
+      !identifierSchema.safeParse(key).success
+    )
+      throw new DomainError('INVALID_INPUT', 'Check the company setup fields and request key.');
+    const { data: session, error: sessionError } = await this.client.auth.getSession();
+    if (sessionError || !session.session)
+      throw new DomainError('AUTH_REQUIRED', 'A verified account is required for company setup.');
+    const token = session.session.access_token;
+    const { data: identity, error: identityError } = await this.client.auth.getUser(token);
+    if (
+      identityError ||
+      identity.user?.id !== expectedActorId ||
+      !identity.user?.email_confirmed_at
+    )
+      throw new DomainError(
+        'AUTH_REQUIRED',
+        'Company setup requires its original verified account.',
+      );
+    try {
+      // Capture the verified token so a concurrent session switch cannot change the request actor.
+      const { data, error, status } = await this.client
+        .rpc('create_company', { input, request_key: key })
+        .setHeader('Authorization', `Bearer ${token}`);
+      if (error) {
+        if (
+          status === 400 &&
+          error.code === 'P0001' &&
+          ['AUTH_REQUIRED', 'INVALID_INPUT', 'IDEMPOTENCY_KEY_REUSED'].includes(error.message)
+        )
+          throw new DomainError(
+            error.message as 'AUTH_REQUIRED' | 'INVALID_INPUT' | 'IDEMPOTENCY_KEY_REUSED',
+            'Company setup was rejected by the authority.',
+          );
+        throw new Error('Uncertain RPC outcome');
+      }
+      return identifierSchema.parse(data);
+    } catch (cause) {
+      if (cause instanceof DomainError) throw cause;
+      throw new DomainError(
+        'CONFIRMATION_UNKNOWN',
+        'Company confirmation unknown. Preserve the original request key.',
+      );
+    }
   }
   async acceptInvitation(token: string): Promise<void> {
     requireOnline();

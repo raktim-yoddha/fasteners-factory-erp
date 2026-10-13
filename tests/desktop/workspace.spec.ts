@@ -26,11 +26,14 @@ test('Electron stores SAMPLE data in utility-process SQLite and reopens it after
     await expect(
       window.getByRole('heading', { name: 'A clear view of your floor.' }),
     ).toBeVisible();
-    const isolation = await window.evaluate(() => ({
+    const isolation = await window.evaluate(async () => ({
       require: typeof Reflect.get(globalThis, 'require'),
       process: typeof Reflect.get(globalThis, 'process'),
+      writerLock: await navigator.locks.request('SAMPLE-company-setup-acceptance', async (lock) =>
+        Boolean(lock),
+      ),
     }));
-    expect(isolation).toEqual({ require: 'undefined', process: 'undefined' });
+    expect(isolation).toEqual({ require: 'undefined', process: 'undefined', writerLock: true });
     const forgedSender = await application.evaluate(async ({ BrowserWindow, app }) => {
       const outsider = new BrowserWindow({
         show: false,

@@ -53,3 +53,9 @@ Plant selection is available to every authorized team member through the persist
 A restored unresolved command displays Confirmation unknown and offers Retry original request. It blocks scope changes and new business writes. Offline team actions are disabled with a reason and cached reads remain visibly offline. Pending manufacturing completion and CSV export show unavailable states rather than a successful-looking action.
 
 Desktop recovery reuses Dialog, Field, Table and Button. Review labels the all-workspace scope, date, exact counts and retained previous database. Unknown restore opens on local-mode entry and blocks other local writes/select actions until original-token confirmation. Passwords are cleared after review and never stored in the journal. Empty snapshots are explicitly identified.
+
+## Company setup confirmation
+
+Shared desktop/browser onboarding reuses the standard Field and Button components for company, initial plant/warehouse, currency and timezone. It retains original setup details before submitting. An unresolved request replaces the editable creation form with its original details and a Retry original company setup action. It blocks replacement submission and the current picker’s mode/workspace navigation. Sign out preserves the account journal; another account never renders those details. Account and backend switching do not transfer a pending request.
+
+Storage corruption or failure disables creation with a visible reason and a recheck action. A competing window receives an explicit writer-busy reason. A confirmed commit displays its company identifier separately from company-list refresh failure; refresh can be retried without creating another company. Known commits whose journal cleanup failed are labeled local cleanup pending. After restart, that retained request must be confirmed again. Auth/deep-link/device-loss and broader administration acceptance remain pending.
