@@ -10,7 +10,7 @@ Use a subsequent CLI-generated migration if regression evidence requires the loc
 
 ## Test isolation
 
-The harness clones schema only into a fresh, strictly named disposable database inside this project's local Supabase database container. No business/Auth data is copied. Create fictional verified identities and one SAMPLE company in the clone, execute real transactions with authenticated role/JWT claim context, then terminate only owned test sessions and drop only the freshly created, marker-verified database. Do not reset the local source, use remote databases or touch sibling containers. This evidence is database-session authorization, not a claim of signed browser/MFA/device acceptance.
+The harness copies only the local Auth schema and replays product migrations into a fresh, strictly named disposable database inside this project's local Supabase database container. No business/Auth data is copied. Create fictional verified identities and one SAMPLE company in the clone, execute real transactions with authenticated role/JWT claim context, then terminate only owned test sessions and drop only the freshly created, marker-verified database. Do not reset the local source, use remote databases or touch sibling containers. This evidence is database-session authorization, not a claim of signed browser/MFA/device acceptance.
 
 ## Acceptance
 
@@ -18,4 +18,4 @@ Commands commit once under duplicate retries. Competing requests cannot oversell
 
 ## State
 
-Investigation and regression proof in progress. Full manufacturing, administration transport and factory/device acceptance remain pending.
+Implemented and validated. Before the fix, the deterministic queued-command probe committed after membership revocation had already committed. Migration 20261013150048 adds transaction-held company/current-membership locks and revokes direct access to the unlocked private delegate. The disposable replay now passes 15 concurrency assertions; the actual local database passes 58 authority assertions and 8 Auth/HTTP checks. Security advisors report no warnings/errors; generated public types are unchanged. Root test:db and existing CI now run both suites. Full manufacturing, wider administration concurrency/transport and factory/device acceptance remain pending.

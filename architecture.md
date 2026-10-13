@@ -81,3 +81,7 @@ The team snapshot includes two bounded obligation projections authorized by curr
 ## Desktop recovery selection
 
 Typed application recovery ports expose individual preview/activate/cancel preload operations. Main owns bounded file selection and authenticated decryption. Utility SQLite validates the allowlisted schema and supported obligations in query-only memory, writes and revalidates a separate managed database, then atomically commits its versioned selector. Previous bytes remain intact. Startup rejects invalid selectors without fallback. The selector and durable client journal retain activation tokens for restart confirmation. See [docs/recovery.md](docs/recovery.md).
+
+## Concurrent team command authority
+
+Business RPCs acquire shared company/current-actor membership locks, then the existing plant stock lock. The checked delegate revalidates current permissions, plant, company state and MFA while those rows remain protected through commit. Metadata changes either commit before authorization and are observed, or wait for the already authorized command. The unlocked private delegate has no client execution grant. Public signatures are unchanged. This proves the current stock command slice; wider administration and production contention remain pending.

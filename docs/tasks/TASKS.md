@@ -16,3 +16,5 @@ Prepared: 2026-10-13. Status is a source-delivery assessment, not factory accept
 M0–M10 scope and acceptance gates are defined in [PID](../../PID.md). Feature-level implementation and pending proof are tracked in [features](../../features.md). Unbuilt milestone features remain backlog even when their navigation entry or generic record kind exists.
 
 Owner steering, 2026-10-13: work directly without subagents. Prioritize Electron desktop, then the multi-person/multi-role backend. Mobile is deferred. All remaining tasks are owned by the primary agent.
+
+[0008 — Team command concurrency](TASK-0008-team-command-concurrency.md): implemented; revocation race reproduced and fixed, 58 authority plus 15 real concurrency assertions, 8 Auth/HTTP checks and clean local security advisors recorded.

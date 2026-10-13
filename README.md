@@ -33,7 +33,7 @@ The isolated backend uses API port **55321**, database **55322**, and mail captu
 | `pnpm dev:desktop`                         | Builds bundled presentation/processes and starts Electron                   |
 | `pnpm dev:web`                             | Starts the shared browser UI and public landing page                        |
 | `pnpm check`                               | Typecheck, lint/contract checks, unit/local tests, web build                |
-| `pnpm test:db`                             | Runs rollback-contained assertions against actual local PostgreSQL          |
+| `pnpm test:db`                             | Runs local authority and disposable-database concurrency assertions         |
 | `pnpm test:api`                            | Verifies local signed Auth/HTTP boundaries and removes fictional identities |
 | `pnpm e2e:desktop`                         | Exercises the real Electron bridge and restart persistence                  |
 | `pnpm e2e:web`                             | Exercises browser OPFS persistence and writer exclusion                     |
@@ -71,3 +71,5 @@ Inspect checkpoints with `git log --oneline`. Use `git revert <commit>` to undo 
 - [docs/testing.md](docs/testing.md), [docs/security.md](docs/security.md), [docs/deployment.md](docs/deployment.md), and [docs/tasks/TASKS.md](docs/tasks/TASKS.md).
 
 Fictional fixtures, limits, methods and tolerances are design proposals, not verified factory SOP. This product does not claim full accounting, GST filing, Tally compatibility or factory certification. Signed/public release and production deployment are separate operational steps.
+
+The backend gate includes real multi-session concurrency checks. `pnpm test:db:concurrency` runs them independently in a marker-verified disposable local database, with schema-only Auth import and migration replay. It verifies competing stock requests, duplicate/stale requests and current membership/role/MFA policy under locks. Existing source and sibling tenant data remain untouched.

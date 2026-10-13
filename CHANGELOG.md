@@ -17,3 +17,9 @@
 - Added validated desktop snapshot preview and explicit activation through a managed selector, retaining previous database bytes and the original restore token after restart. Corrupt/unresolved recovery journals block local writes.
 
 This version is not the completed M0–M10 ERP or a certified factory rollout. Feature-level acceptance status is recorded in features.md and docs/testing.md.
+
+### Team concurrency integrity continuation
+
+- Fixed a queued command committing after membership revocation by holding shared company/current-membership locks across authorization and business commit.
+- Preserved the public RPC and checked transaction delegate; removed all client grants on the unlocked implementation.
+- Added deterministic real PostgreSQL multi-session contention/retry/revision/access/MFA acceptance with guarded disposable-database cleanup, wired into `test:db` and existing CI.
