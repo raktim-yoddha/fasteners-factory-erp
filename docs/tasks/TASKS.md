@@ -22,3 +22,5 @@ Owner steering, 2026-10-13: work directly without subagents. Prioritize Electron
 [0009 — Atomic local schema initialization](TASK-0009-atomic-schema-initialization.md): implemented; six preservation/rollback cases, 50 shared tests and affected browser/Windows package acceptance recorded. No schema-v1 data transformation or upgrade was performed.
 
 [0010 — Durable company setup confirmation](TASK-0010-company-setup-recovery.md): implemented and locally validated; company creation preserves original account/backend-bound requests, writer exclusion and committed/refresh/cleanup states. Broader administration recovery remains pending.
+
+[0011 — Durable Team administration recovery](TASK-0011-administration-recovery.md): implemented and locally validated for invitations, member access and plant/warehouse creation. Original requests remain reachable after restart/revocation, with shared storage/token/confirmation handling. Ownership/policy transport and wider administration contention remain pending.

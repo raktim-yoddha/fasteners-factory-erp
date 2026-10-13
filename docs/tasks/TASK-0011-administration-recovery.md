@@ -1,6 +1,6 @@
 # Task 0011 — Durable Team administration recovery
 
-Prepared: 2026-10-13. Owner: primary agent. Milestone: M1. Status: scoped before implementation.
+Prepared: 2026-10-13. Owner: primary agent. Milestone: M1. Status: implemented and locally validated.
 
 ## Outcome and scope
 
@@ -19,3 +19,9 @@ Reuse company setup's journal locking, confirmation handling and verified-token 
 ## Exclusions
 
 Ownership transfer, archive and policy changes currently use a separate non-keyed API; their durable transport redesign is a later slice. Invitation acceptance/recovery links, email delivery, private files, manufacturing breadth and cutover remain pending. Mobile is excluded. No hosted changes, new dependencies or Git push are part of this task. Existing migrations remain immutable; no schema change is anticipated.
+
+## Delivered validation and limits
+
+Shared journal/confirmation/token helpers now serve company setup and administration without changing existing company journal bytes/namespaces. Thirteen new focused tests pass within the 76-test shared gate. Five administration browser fixtures join the two company fixtures and OPFS flow. Local Supabase passes 69 rollback-contained authority assertions, including eleven new replay/audit/role checks, plus 15 real concurrency assertions. Signed Auth/HTTP passes 13 checks and removes its fictional identities without creating tenant records. Security advisors report no issues.
+
+See [dated evidence](../evidence/2026-10-13-administration-recovery.md) for artifact identity and packaged runtime results. No schema/dependency/generated-type change, hosted write, mobile work, real mail or push was performed. Complete signed desktop Team/MFA, wider administration transaction contention and non-keyed ownership/policy transport remain pending.

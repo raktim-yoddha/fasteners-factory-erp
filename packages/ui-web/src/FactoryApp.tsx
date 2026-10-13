@@ -40,6 +40,7 @@ import {
   capability,
   type PendingCommandStore,
   type CompanySetupStore,
+  type AdministrationStore,
   type TeamAuthPort,
   type TeamAdministrationPort,
   type SnapshotRecoveryPort,
@@ -57,6 +58,8 @@ import { BackupDialog } from './views/BackupDialog';
 import { CreateSolo } from './views/CreateSolo';
 import { TeamOnboarding } from './views/TeamOnboarding';
 import { RestoreDialog } from './views/RestoreDialog';
+import { AdministrationRecovery } from './views/AdministrationRecovery';
+import { useAdministrationRecovery } from './useAdministrationRecovery';
 export interface FactoryAppProps {
   platform: 'web' | 'desktop';
   pendingStore: PendingCommandStore;
@@ -66,6 +69,7 @@ export interface FactoryAppProps {
     auth: TeamAuthPort;
     administration?: TeamAdministrationPort;
     companySetupStore: CompanySetupStore;
+    administrationStore?: AdministrationStore;
   };
   backup?: {
     export: (passphrase: string) => Promise<void>;
@@ -164,6 +168,16 @@ export function FactoryApp(props: FactoryAppProps) {
     enabled: Boolean(repository && authority),
     retry: false,
   });
+  const administrationRecovery = useAdministrationRecovery(
+    mode === 'team' && userId !== 'signed-out' && userId !== 'local-owner' ? userId : null,
+    props.team?.auth,
+    props.team?.administration,
+    props.team?.administrationStore,
+    async () => {
+      await refreshWorkspaces();
+      if (authority) await snapshot.refetch({ throwOnError: true });
+    },
+  );
   async function choose(value: 'solo' | 'team') {
     setError('');
     setBusy(true);
@@ -213,7 +227,15 @@ export function FactoryApp(props: FactoryAppProps) {
     navigate('/app/overview');
   }
   async function selectWorkspace(id: string) {
-    if (busy || unknown || recoveryPending || companySetupBlocked || !repository) return;
+    if (
+      busy ||
+      unknown ||
+      recoveryPending ||
+      companySetupBlocked ||
+      administrationRecovery.blocked ||
+      !repository
+    )
+      return;
     setBusy(true);
     try {
       let selected: Authority =
@@ -236,7 +258,7 @@ export function FactoryApp(props: FactoryAppProps) {
     }
   }
   async function selectPlant(plantId: string) {
-    if (busy || unknown || authority?.kind !== 'team') return;
+    if (busy || unknown || administrationRecovery.blocked || authority?.kind !== 'team') return;
     setBusy(true);
     try {
       await openAuthority({ ...authority, plantId });
@@ -296,7 +318,8 @@ export function FactoryApp(props: FactoryAppProps) {
     payload: CommandPayload<K>,
     revision?: string,
   ) {
-    if (!authority || busy || unknown || !snapshot.data) return false;
+    if (!authority || busy || unknown || administrationRecovery.blocked || !snapshot.data)
+      return false;
     if (authority.kind === 'team' && !online) {
       setStatus('Unsent — Team is offline.');
       setError('Critical writes require the online authority.');
@@ -310,7 +333,7 @@ export function FactoryApp(props: FactoryAppProps) {
     return execute(request(authority, command, payload, revision));
   }
   async function switchMode() {
-    if (busy || unknown || companySetupBlocked) return;
+    if (busy || unknown || companySetupBlocked || administrationRecovery.blocked) return;
     generation.current++;
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -396,7 +419,9 @@ export function FactoryApp(props: FactoryAppProps) {
       <main className="workspace-picker">
         <Button
           variant="ghost"
-          disabled={recoveryPending || companySetupBlocked || busy}
+          disabled={
+            recoveryPending || companySetupBlocked || administrationRecovery.blocked || busy
+          }
           onClick={() => void switchMode()}
         >
           ← Change mode
@@ -415,9 +440,12 @@ export function FactoryApp(props: FactoryAppProps) {
             {error}
           </div>
         ) : null}
+        {mode === 'team' ? <AdministrationRecovery recovery={administrationRecovery} /> : null}
         {mode === 'team' && props.team ? (
           <TeamOnboarding
             auth={props.team.auth}
+            administrationBlocked={administrationRecovery.blocked}
+            administrationBusy={administrationRecovery.busy}
             companySetupStore={props.team.companySetupStore}
             onBlockedChange={setCompanySetupBlocked}
             onChange={async () => {
@@ -442,7 +470,9 @@ export function FactoryApp(props: FactoryAppProps) {
                 </p>
               </div>
               <Button
-                disabled={busy || recoveryPending || companySetupBlocked}
+                disabled={
+                  busy || recoveryPending || companySetupBlocked || administrationRecovery.blocked
+                }
                 onClick={() => void selectWorkspace(workspace.id)}
               >
                 Open workspace <ArrowUpRight size={16} />
@@ -512,7 +542,7 @@ export function FactoryApp(props: FactoryAppProps) {
         <select
           id="workspace-select"
           value={authority.kind === 'solo' ? authority.workspaceId : authority.companyId}
-          disabled={busy || Boolean(unknown)}
+          disabled={busy || Boolean(unknown) || administrationRecovery.blocked}
           onChange={(event) => void selectWorkspace(event.target.value)}
         >
           {workspaces.map((workspace) => (
@@ -563,7 +593,7 @@ export function FactoryApp(props: FactoryAppProps) {
           </div>
           <Button
             variant="ghost"
-            disabled={busy || Boolean(unknown)}
+            disabled={busy || Boolean(unknown) || administrationRecovery.blocked}
             onClick={() => void switchMode()}
           >
             <LogOut size={16} /> Change mode
@@ -586,7 +616,7 @@ export function FactoryApp(props: FactoryAppProps) {
               <select
                 aria-label="Active plant"
                 value={authority.plantId ?? data.plantId ?? ''}
-                disabled={busy || Boolean(unknown)}
+                disabled={busy || Boolean(unknown) || administrationRecovery.blocked}
                 onChange={(event) => void selectPlant(event.target.value)}
               >
                 {data.plants.map((plant) => (
@@ -651,6 +681,7 @@ export function FactoryApp(props: FactoryAppProps) {
               {error}
             </div>
           ) : null}
+          {mode === 'team' ? <AdministrationRecovery recovery={administrationRecovery} /> : null}
           {snapshot.error ? (
             <Panel>
               <EmptyState
@@ -676,7 +707,7 @@ export function FactoryApp(props: FactoryAppProps) {
                 repository,
                 authority,
                 snapshot: data,
-                busy: busy || Boolean(unknown),
+                busy: busy || Boolean(unknown) || administrationRecovery.blocked,
                 can: (command, payload) =>
                   authority.kind === 'team' && !online
                     ? { allowed: false, reason: 'Team is offline. Critical writes are blocked.' }
@@ -701,6 +732,13 @@ export function FactoryApp(props: FactoryAppProps) {
                   companyId={authority.companyId}
                   administration={props.team.administration}
                   auth={props.team.auth}
+                  blocked={
+                    busy ||
+                    Boolean(unknown) ||
+                    administrationRecovery.blocked ||
+                    !administrationRecovery.enabled
+                  }
+                  onSubmit={administrationRecovery.submit}
                   onPlantChange={(plantId) => void selectPlant(plantId)}
                 />
               ) : module === 'settings' ? (

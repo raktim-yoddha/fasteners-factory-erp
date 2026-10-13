@@ -1,6 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './generated/database';
 export type CloudClient = SupabaseClient<Database>;
+export { CloudAdministration } from './administration';
+import { checkRpcConfirmation, verifiedToken } from './rpc-confirmation';
 import {
   DomainError,
   authorityKey,
@@ -8,8 +10,6 @@ import {
   workspaceSchema,
   snapshotSchema,
   commandResultSchema,
-  administrationSnapshotSchema,
-  invitationResultSchema,
   companySetupInputSchema,
   identifierSchema,
   type Authority,
@@ -20,12 +20,7 @@ import {
   type Snapshot,
   type Workspace,
 } from '@fasteners/contracts';
-import type {
-  TeamAuthPort,
-  TeamAdministrationPort,
-  TeamAdministrationSnapshot,
-  MemberAccess,
-} from '@fasteners/application';
+import type { TeamAuthPort } from '@fasteners/application';
 export interface AuthStorage {
   getItem(key: string): Promise<string | null> | string | null;
   setItem(key: string, value: string): Promise<void> | void;
@@ -106,38 +101,14 @@ export class CloudAuth implements TeamAuthPort {
       !identifierSchema.safeParse(key).success
     )
       throw new DomainError('INVALID_INPUT', 'Check the company setup fields and request key.');
-    const { data: session, error: sessionError } = await this.client.auth.getSession();
-    if (sessionError || !session.session)
-      throw new DomainError('AUTH_REQUIRED', 'A verified account is required for company setup.');
-    const token = session.session.access_token;
-    const { data: identity, error: identityError } = await this.client.auth.getUser(token);
-    if (
-      identityError ||
-      identity.user?.id !== expectedActorId ||
-      !identity.user?.email_confirmed_at
-    )
-      throw new DomainError(
-        'AUTH_REQUIRED',
-        'Company setup requires its original verified account.',
-      );
+    const token = await verifiedToken(this.client, expectedActorId);
     try {
       // Capture the verified token so a concurrent session switch cannot change the request actor.
-      const { data, error, status } = await this.client
+      const response = await this.client
         .rpc('create_company', { input, request_key: key })
         .setHeader('Authorization', `Bearer ${token}`);
-      if (error) {
-        if (
-          status === 400 &&
-          error.code === 'P0001' &&
-          ['AUTH_REQUIRED', 'INVALID_INPUT', 'IDEMPOTENCY_KEY_REUSED'].includes(error.message)
-        )
-          throw new DomainError(
-            error.message as 'AUTH_REQUIRED' | 'INVALID_INPUT' | 'IDEMPOTENCY_KEY_REUSED',
-            'Company setup was rejected by the authority.',
-          );
-        throw new Error('Uncertain RPC outcome');
-      }
-      return identifierSchema.parse(data);
+      checkRpcConfirmation(response, 'Company setup');
+      return identifierSchema.parse(response.data);
     } catch (cause) {
       if (cause instanceof DomainError) throw cause;
       throw new DomainError(
@@ -176,74 +147,6 @@ export class CloudAuth implements TeamAuthPort {
     return data.totp
       .filter((factor) => factor.status === 'verified')
       .map((factor) => ({ id: factor.id, name: factor.friendly_name ?? 'Authenticator' }));
-  }
-}
-export class CloudAdministration implements TeamAdministrationPort {
-  constructor(private readonly client: CloudClient) {}
-  async snapshot(companyId: string): Promise<TeamAdministrationSnapshot> {
-    const { data, error } = await this.client.rpc('member_admin_snapshot', { company: companyId });
-    if (error) throw new Error('Member administration requires current company permission.');
-    return administrationSnapshotSchema.parse(data);
-  }
-  async invite(
-    companyId: string,
-    input: { email: string; roles: string[]; plantIds: string[]; allPlants: boolean },
-    requestKey: string,
-  ): Promise<{ id: string; token: string }> {
-    requireOnline();
-    const { data, error } = await this.client.rpc('invite_member', {
-      company: companyId,
-      email: input.email,
-      desired_roles: input.roles,
-      desired_plants: input.plantIds,
-      all_plants: input.allPlants,
-      request_key: requestKey,
-    });
-    if (error) throw new Error(error.message);
-    return invitationResultSchema.parse(data);
-  }
-  async updateAccess(companyId: string, input: MemberAccess, requestKey: string): Promise<void> {
-    requireOnline();
-    const { error } = await this.client.rpc('update_member_access', {
-      company: companyId,
-      member: input.id,
-      desired_roles: input.roles,
-      desired_plants: input.plantIds,
-      all_plants: input.allPlants,
-      active: input.active,
-      grants: input.grants,
-      request_key: requestKey,
-    });
-    if (error) throw new Error(error.message);
-  }
-  async createPlant(
-    companyId: string,
-    input: { name: string; warehouseName: string },
-    requestKey: string,
-  ): Promise<void> {
-    requireOnline();
-    const { error } = await this.client.rpc('create_plant', {
-      company: companyId,
-      name: input.name,
-      warehouse_name: input.warehouseName,
-      request_key: requestKey,
-    });
-    if (error) throw new Error(error.message);
-  }
-  async manage(
-    companyId: string,
-    action:
-      'request_transfer' | 'accept_transfer' | 'archive' | 'independent_review' | 'require_mfa',
-    input: { target?: string; enabled?: boolean },
-  ): Promise<void> {
-    requireOnline();
-    const { error } = await this.client.rpc('manage_company', {
-      company: companyId,
-      action,
-      target: input.target,
-      enabled: input.enabled,
-    });
-    if (error) throw new Error(error.message);
   }
 }
 export class CloudRepository implements Repository {

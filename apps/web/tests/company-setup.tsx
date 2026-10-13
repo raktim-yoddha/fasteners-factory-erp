@@ -4,7 +4,11 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FactoryApp } from '@fasteners/ui-web';
-import { CompanySetupJournal, PendingJournal } from '@fasteners/client-storage';
+import {
+  AdministrationJournal,
+  CompanySetupJournal,
+  PendingJournal,
+} from '@fasteners/client-storage';
 import type { TeamAuthPort } from '../../../packages/application/src';
 import {
   DomainError,
@@ -13,6 +17,7 @@ import {
   type Workspace,
 } from '@fasteners/contracts';
 import '@fasteners/ui-web/styles.css';
+import { administrationFixture } from './administration-fixture';
 
 const actorA = '10000000-0000-4000-8000-000000000001';
 const actor = () => localStorage.getItem('sample-fixture-actor') ?? actorA;
@@ -68,10 +73,14 @@ const auth: TeamAuthPort = {
   enrollMfa: unavailable,
   verifyMfa: unavailable,
 };
+const adminFixture = new URLSearchParams(location.search).has('administration')
+  ? administrationFixture(existing, actor)
+  : null;
 const repository: Repository = {
   listWorkspaces: async () => {
     if (localStorage.getItem('sample-fixture-refresh-fail') === 'true')
       throw new Error('SAMPLE refresh failed');
+    if (adminFixture?.revoked()) return [];
     return [
       existing,
       ...commits()
@@ -86,7 +95,7 @@ const repository: Repository = {
     ];
   },
   createWorkspace: unavailable,
-  snapshot: unavailable,
+  snapshot: adminFixture?.snapshot ?? unavailable,
   execute: unavailable,
   close: async () => undefined,
 };
@@ -100,6 +109,21 @@ createRoot(document.getElementById('root')!).render(
         team={{
           auth,
           repository,
+          administration: adminFixture?.administration,
+          administrationStore: adminFixture
+            ? new AdministrationJournal(
+                () => ({
+                  getItem: (key) => localStorage.getItem(key),
+                  setItem: (key, value) => {
+                    if (localStorage.getItem('sample-admin-quota') === 'true')
+                      throw new Error('SAMPLE quota');
+                    localStorage.setItem(key, value);
+                  },
+                  removeItem: (key) => localStorage.removeItem(key),
+                }),
+                'https://sample-backend.invalid',
+              )
+            : undefined,
           companySetupStore: new CompanySetupJournal(
             () => localStorage,
             'https://sample-backend.invalid',

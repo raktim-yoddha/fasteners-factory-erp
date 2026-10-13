@@ -73,3 +73,5 @@ Inspect checkpoints with `git log --oneline`. Use `git revert <commit>` to undo 
 Fictional fixtures, limits, methods and tolerances are design proposals, not verified factory SOP. This product does not claim full accounting, GST filing, Tally compatibility or factory certification. Signed/public release and production deployment are separate operational steps.
 
 The backend gate includes real multi-session concurrency checks. `pnpm test:db:concurrency` runs them independently in a marker-verified disposable local database, with schema-only Auth import and migration replay. It verifies competing stock requests, duplicate/stale requests and current membership/role/MFA policy under locks. Existing source and sibling tenant data remain untouched.
+
+Latest scoped delivery: [Team administration recovery evidence](docs/evidence/2026-10-13-administration-recovery.md). Solo uses SQLite; Team uses the PostgreSQL database provided by Supabase. Recovery preserves original requests and does not synchronize these authorities.

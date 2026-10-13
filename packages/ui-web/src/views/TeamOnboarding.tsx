@@ -8,11 +8,15 @@ export function TeamOnboarding({
   onChange,
   companySetupStore,
   onBlockedChange,
+  administrationBlocked,
+  administrationBusy,
 }: {
   auth: TeamAuthPort;
   onChange: () => Promise<void>;
   companySetupStore: CompanySetupStore;
   onBlockedChange: (blocked: boolean) => void;
+  administrationBlocked: boolean;
+  administrationBusy: boolean;
 }) {
   const [user, setUser] = useState<Awaited<ReturnType<TeamAuthPort['currentUser']>>>(null);
   const [email, setEmail] = useState('');
@@ -128,7 +132,7 @@ export function TeamOnboarding({
             </div>
             <Button
               variant="ghost"
-              disabled={busy}
+              disabled={busy || administrationBusy}
               onClick={() => void action(() => auth.signOut())}
             >
               Sign out
@@ -140,6 +144,7 @@ export function TeamOnboarding({
               actorId={user.id}
               auth={auth}
               store={companySetupStore}
+              externalBlocked={administrationBlocked}
               onChange={onChange}
               onBlockedChange={updateSetupBlocked}
             />
@@ -164,7 +169,9 @@ export function TeamOnboarding({
                   autoComplete="off"
                 />
               </Field>
-              <Button disabled={busy || setupBlocked}>Accept invitation</Button>
+              <Button disabled={busy || setupBlocked || administrationBlocked}>
+                Accept invitation
+              </Button>
             </form>
           ) : null}
           {user.verified ? <AuthSecurity auth={auth} /> : null}

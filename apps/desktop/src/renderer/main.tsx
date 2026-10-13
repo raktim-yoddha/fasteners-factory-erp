@@ -1,4 +1,5 @@
 import {
+  AdministrationJournal,
   CompanySetupJournal,
   LocalRecoveryJournal,
   PendingJournal,
@@ -50,6 +51,7 @@ createRoot(document.getElementById('root')!).render(
                 repository: new CloudRepository(client),
                 auth: new CloudAuth(client),
                 companySetupStore: new CompanySetupJournal(() => localStorage, url!),
+                administrationStore: new AdministrationJournal(() => localStorage, url!),
                 administration: new CloudAdministration(client),
               }
             : undefined

@@ -1,12 +1,22 @@
 import type {
   Authority,
+  AdministrationRequest,
+  AdministrationResult,
   CommandName,
   CommandPayload,
   CommandRequest,
   CommandResult,
   Repository,
+  MemberAccess,
 } from '@fasteners/contracts';
 export { capability } from './capabilities';
+export {
+  AdministrationController,
+  type AdministrationStore,
+  type AdministrationCommit,
+} from './administration';
+export type { DurableRequestStore } from './durable-request';
+export type { MemberAccess } from '@fasteners/contracts';
 export {
   CompanySetupController,
   type CompanySetupStore,
@@ -75,15 +85,6 @@ export interface TeamAuthPort {
   verifyMfa(factorId: string, code: string): Promise<void>;
   mfaFactors(): Promise<{ id: string; name: string }[]>;
 }
-export interface MemberAccess {
-  id: string;
-  email: string;
-  active: boolean;
-  allPlants: boolean;
-  roles: string[];
-  plantIds: string[];
-  grants: string[];
-}
 export interface TeamAdministrationSnapshot {
   actorId: string;
   members: MemberAccess[];
@@ -93,17 +94,7 @@ export interface TeamAdministrationSnapshot {
 }
 export interface TeamAdministrationPort {
   snapshot(companyId: string): Promise<TeamAdministrationSnapshot>;
-  invite(
-    companyId: string,
-    input: { email: string; roles: string[]; plantIds: string[]; allPlants: boolean },
-    requestKey: string,
-  ): Promise<{ id: string; token: string }>;
-  updateAccess(companyId: string, input: MemberAccess, requestKey: string): Promise<void>;
-  createPlant(
-    companyId: string,
-    input: { name: string; warehouseName: string },
-    requestKey: string,
-  ): Promise<void>;
+  execute(request: AdministrationRequest): Promise<AdministrationResult>;
   manage(
     companyId: string,
     action:

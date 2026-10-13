@@ -39,3 +39,7 @@ English, Windows 11 x64, INR and `Asia/Kolkata`, with currency/timezone explicit
 ## Delivered company setup recovery slice
 
 Verified Team company creation retains the original fields and idempotency key on the device before sending. Confirmation unknown survives restart; retry uses the original account, backend and request. Another request cannot replace it. A storage failure or competing local writer blocks dispatch. A committed company remains committed when the company-list refresh fails, and the UI offers an independent refresh. This does not add solo synchronization or hosted infrastructure. Invitation/access/plant/ownership administration transport recovery remains pending.
+
+## Delivered keyed administration recovery
+
+Team invitation creation, member-access changes and plant/warehouse creation retain their original account/backend/company-bound request before dispatch. The same key and fields survive restart. Recovery must remain reachable when current membership is revoked or company reads fail; denied retries retain uncertain evidence. Storage failures block dispatch. New writes and scope changes in the current Team session stay blocked until confirmation/storage recovery. Confirmed commits, refresh failures and local cleanup failures have distinct outcomes. Returned invitation tokens are transient and never stored in request journals. Ownership/archive/policy transport recovery and invitation acceptance link/device recovery remain pending.

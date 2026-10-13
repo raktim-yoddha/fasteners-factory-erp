@@ -56,3 +56,5 @@ export class PendingJournal implements PendingCommandStore {
     this.storage.removeItem(this.key(actor, authority));
   }
 }
+
+export { AdministrationJournal } from './administration';

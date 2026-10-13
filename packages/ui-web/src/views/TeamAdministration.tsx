@@ -1,5 +1,7 @@
+import type { AdministrationOperation } from '@fasteners/contracts';
+import type { AdministrationCommit } from '@fasteners/application';
 import { AuthSecurity } from './AuthSecurity';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   MemberAccess,
   TeamAdministrationPort,
@@ -12,16 +14,23 @@ export function TeamAdministration({
   administration,
   auth,
   onPlantChange,
+  onSubmit,
+  blocked,
 }: {
   companyId: string;
   administration: TeamAdministrationPort;
   auth: TeamAuthPort;
   onPlantChange: (plantId: string) => void;
+  onSubmit: (
+    companyId: string,
+    operation: AdministrationOperation,
+  ) => Promise<AdministrationCommit>;
+  blocked: boolean;
 }) {
   const [data, setData] = useState<TeamAdministrationSnapshot | null>(null);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [localBusy, setBusy] = useState(false);
+  const busy = localBusy || blocked;
   const [email, setEmail] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [plantIds, setPlantIds] = useState<string[]>([]);
@@ -30,9 +39,6 @@ export function TeamAdministration({
   const [name, setName] = useState('');
   const [warehouse, setWarehouse] = useState('');
   const [target, setTarget] = useState('');
-  const inviteKey = useRef(crypto.randomUUID());
-  const editKey = useRef(crypto.randomUUID());
-  const plantKey = useRef(crypto.randomUUID());
   async function load() {
     setData(await administration.snapshot(companyId));
   }
@@ -52,11 +58,16 @@ export function TeamAdministration({
     };
   }, [administration, companyId]);
   async function action(operation: () => Promise<void>) {
+    if (busy) return;
     setBusy(true);
     setError('');
     try {
       await operation();
-      await load();
+      try {
+        await load();
+      } catch {
+        setError('Administration committed. Member list refresh failed.');
+      }
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -83,9 +94,10 @@ export function TeamAdministration({
           {error}
         </p>
       ) : null}
-      {message ? (
-        <p className="notice" role="status">
-          {message}
+      {blocked ? (
+        <p className="notice">
+          Administration writes are blocked while another request or storage issue remains
+          unresolved.
         </p>
       ) : null}
       <AuthSecurity auth={auth} />
@@ -141,7 +153,6 @@ export function TeamAdministration({
                           plantIds: [...member.plantIds],
                           grants: [...member.grants],
                         });
-                        editKey.current = crypto.randomUUID();
                       }}
                     >
                       Edit access
@@ -161,15 +172,11 @@ export function TeamAdministration({
               onSubmit={(event) => {
                 event.preventDefault();
                 void action(async () => {
-                  const result = await administration.invite(
-                    companyId,
-                    { email, roles, plantIds, allPlants },
-                    inviteKey.current,
-                  );
-                  setMessage(
-                    `Invitation created. Give the intended member this single-use token through an authorized channel: ${result.token}`,
-                  );
-                  inviteKey.current = crypto.randomUUID();
+                  await onSubmit(companyId, {
+                    command: 'invite_member',
+                    input: { email, roles, plantIds, allPlants },
+                  });
+                  setEmail('');
                 });
               }}
             >
@@ -231,7 +238,12 @@ export function TeamAdministration({
             <h2>Plants and warehouses</h2>
             <div className="action-row">
               {data.plants.map((plant) => (
-                <Button variant="secondary" key={plant.id} onClick={() => onPlantChange(plant.id)}>
+                <Button
+                  variant="secondary"
+                  key={plant.id}
+                  disabled={busy}
+                  onClick={() => onPlantChange(plant.id)}
+                >
                   Open {plant.name}
                 </Button>
               ))}
@@ -241,12 +253,10 @@ export function TeamAdministration({
               onSubmit={(event) => {
                 event.preventDefault();
                 void action(async () => {
-                  await administration.createPlant(
-                    companyId,
-                    { name, warehouseName: warehouse },
-                    plantKey.current,
-                  );
-                  plantKey.current = crypto.randomUUID();
+                  await onSubmit(companyId, {
+                    command: 'create_plant',
+                    input: { name, warehouseName: warehouse },
+                  });
                   setName('');
                   setWarehouse('');
                 });
@@ -350,8 +360,7 @@ export function TeamAdministration({
             onSubmit={(event) => {
               event.preventDefault();
               void action(async () => {
-                await administration.updateAccess(companyId, editing, editKey.current);
-                editKey.current = crypto.randomUUID();
+                await onSubmit(companyId, { command: 'update_member_access', input: editing });
                 setEditing(null);
               });
             }}

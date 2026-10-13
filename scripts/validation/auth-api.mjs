@@ -83,6 +83,53 @@ try {
       afterRejectedSetup.data.length === 0,
     'Rejected company setup creates no membership or discoverable company',
   );
+  const forgedCompany = randomUUID();
+  const deniedAdministration = [
+    [
+      'invite_member',
+      {
+        company: forgedCompany,
+        email: 'sample-denied@example.invalid',
+        desired_roles: ['Stores'],
+        desired_plants: [],
+        all_plants: true,
+        request_key: randomUUID(),
+      },
+    ],
+    [
+      'create_plant',
+      {
+        company: forgedCompany,
+        name: 'SAMPLE Denied plant',
+        warehouse_name: 'SAMPLE Denied warehouse',
+        request_key: randomUUID(),
+      },
+    ],
+    [
+      'update_member_access',
+      {
+        company: forgedCompany,
+        member: users[0],
+        desired_roles: ['Stores'],
+        desired_plants: [],
+        all_plants: true,
+        active: true,
+        grants: [],
+        request_key: randomUUID(),
+      },
+    ],
+  ];
+  for (const [operation, input] of deniedAdministration) {
+    const response = await client
+      .rpc(operation, input)
+      .setHeader('Authorization', `Bearer ${login.data.session.access_token}`);
+    check(
+      response.status === 400 &&
+        response.error?.code === 'P0001' &&
+        response.error.message === 'PERMISSION_DENIED',
+      `Signed nonmember receives definitive ${operation} permission rollback`,
+    );
+  }
   const mutation = await client.from('records').insert({
     company_id: randomUUID(),
     plant_id: randomUUID(),

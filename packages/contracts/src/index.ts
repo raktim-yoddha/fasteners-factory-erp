@@ -1,5 +1,15 @@
 import { z } from 'zod';
 export {
+  administrationOperationSchema,
+  administrationRequestSchema,
+  administrationResultSchema,
+  memberAccessSchema,
+  type AdministrationOperation,
+  type AdministrationRequest,
+  type AdministrationResult,
+  type MemberAccess,
+} from './administration';
+export {
   companySetupInputSchema,
   companySetupRequestSchema,
   type CompanySetupInput,

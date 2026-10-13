@@ -13,12 +13,14 @@ export function CompanySetup({
   actorId,
   onChange,
   onBlockedChange,
+  externalBlocked = false,
 }: {
   auth: TeamAuthPort;
   store: CompanySetupStore;
   actorId: string;
   onChange: () => Promise<void>;
   onBlockedChange: (blocked: boolean) => void;
+  externalBlocked?: boolean;
 }) {
   const controller = useMemo(() => new CompanySetupController(auth, store), [auth, store]);
   const [pending, setPending] = useState<CompanySetupRequest | null>(null);
@@ -57,7 +59,7 @@ export function CompanySetup({
   }, [loading, busy, storageIssue, pending, onBlockedChange]);
 
   async function send(retry: boolean) {
-    if (busy || loading || storageIssue) return;
+    if (busy || loading || storageIssue || externalBlocked) return;
     setBusy(true);
     setError('');
     setMessage('Submitting company setup — awaiting authority confirmation.');
@@ -90,6 +92,11 @@ export function CompanySetup({
   return (
     <>
       <h3>Create company</h3>
+      {externalBlocked ? (
+        <p className="notice">
+          Resolve the original administration request before creating a company.
+        </p>
+      ) : null}
       {error ? (
         <p className="feedback error" role="alert">
           {error}
@@ -137,7 +144,7 @@ export function CompanySetup({
         >
           <Field label="Company name">
             <input
-              disabled={loading || busy || storageIssue}
+              disabled={loading || busy || storageIssue || externalBlocked}
               required
               maxLength={200}
               value={name}
@@ -146,7 +153,7 @@ export function CompanySetup({
           </Field>
           <Field label="Initial plant">
             <input
-              disabled={loading || busy || storageIssue}
+              disabled={loading || busy || storageIssue || externalBlocked}
               required
               maxLength={200}
               value={plantName}
@@ -155,7 +162,7 @@ export function CompanySetup({
           </Field>
           <Field label="Initial warehouse">
             <input
-              disabled={loading || busy || storageIssue}
+              disabled={loading || busy || storageIssue || externalBlocked}
               required
               maxLength={200}
               value={warehouseName}
@@ -164,7 +171,7 @@ export function CompanySetup({
           </Field>
           <Field label="Currency">
             <input
-              disabled={loading || busy || storageIssue}
+              disabled={loading || busy || storageIssue || externalBlocked}
               required
               pattern="[A-Z]{3}"
               value={currency}
@@ -173,7 +180,7 @@ export function CompanySetup({
           </Field>
           <Field label="Timezone">
             <input
-              disabled={loading || busy || storageIssue}
+              disabled={loading || busy || storageIssue || externalBlocked}
               required
               maxLength={100}
               value={timezone}
@@ -181,7 +188,9 @@ export function CompanySetup({
             />
           </Field>
           <div className="form-actions">
-            <Button disabled={loading || busy || storageIssue}>Create company atomically</Button>
+            <Button disabled={loading || busy || storageIssue || externalBlocked}>
+              Create company atomically
+            </Button>
           </div>
         </form>
       ) : null}

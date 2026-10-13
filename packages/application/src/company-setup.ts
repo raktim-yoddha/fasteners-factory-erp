@@ -7,13 +7,13 @@ import {
   type CompanySetupRequest,
 } from '@fasteners/contracts';
 import type { TeamAuthPort } from './index';
+import {
+  confirmDurableRequest,
+  requireVerifiedActor,
+  type DurableRequestStore,
+} from './durable-request';
 
-export interface CompanySetupStore {
-  read(actorId: string): CompanySetupRequest | null;
-  save(request: CompanySetupRequest): void;
-  clear(request: CompanySetupRequest): void;
-  exclusive<T>(actorId: string, operation: () => Promise<T>): Promise<T>;
-}
+export type CompanySetupStore = DurableRequestStore<CompanySetupRequest>;
 export interface CompanySetupCommit {
   companyId: string;
   journalCleared: boolean;
@@ -56,43 +56,18 @@ export class CompanySetupController {
     previouslyUncertain: boolean,
   ): Promise<CompanySetupCommit> {
     companySetupRequestSchema.parse(request);
-    const current = await this.auth.currentUser();
-    if (!current?.verified || current.id !== request.actorId)
-      throw new DomainError(
-        'AUTH_REQUIRED',
-        'Sign in with the original verified account before sending company setup.',
-      );
-    this.store.save(request);
-    let companyId: string;
-    try {
-      companyId = identifierSchema.parse(
-        await this.auth.createCompany(request.input, request.requestKey, request.actorId),
-      );
-    } catch (cause) {
-      if (
-        !previouslyUncertain &&
-        cause instanceof DomainError &&
-        [
-          'INVALID_INPUT',
-          'AUTH_REQUIRED',
-          'IDEMPOTENCY_KEY_REUSED',
-          'OFFLINE_TEAM_WRITE_BLOCKED',
-        ].includes(cause.code)
-      ) {
-        this.store.clear(request);
-        throw cause;
-      }
-      throw new DomainError(
-        'CONFIRMATION_UNKNOWN',
-        'Company confirmation unknown. Retry the retained original request with the same account.',
-      );
-    }
-    try {
-      this.store.clear(request);
-      return { companyId, journalCleared: true };
-    } catch {
-      // The authority committed even if local cleanup failed. A retry only replays that commit.
-      return { companyId, journalCleared: false };
-    }
+    await requireVerifiedActor(this.auth, request.actorId);
+    const result = await confirmDurableRequest(
+      request,
+      this.store,
+      async () =>
+        identifierSchema.parse(
+          await this.auth.createCompany(request.input, request.requestKey, request.actorId),
+        ),
+      previouslyUncertain,
+      ['INVALID_INPUT', 'AUTH_REQUIRED', 'IDEMPOTENCY_KEY_REUSED', 'OFFLINE_TEAM_WRITE_BLOCKED'],
+      'Company',
+    );
+    return { companyId: result.value, journalCleared: result.journalCleared };
   }
 }

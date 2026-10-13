@@ -68,9 +68,15 @@ do $$declare company uuid:=(select value::uuid from test_state where key='compan
  begin update public.memberships set all_plants=true;raise exception 'missing rejection';exception when insufficient_privilege then perform pg_temp.assert_true(true,'direct membership mutation denied');end;
  begin update public.stock_ledger_entries set quantity=999;raise exception 'missing rejection';exception when insufficient_privilege then perform pg_temp.assert_true(true,'direct ledger mutation denied');end;
 end$$;
-do $$declare company uuid:=(select value::uuid from test_state where key='company_a');invitation jsonb;plant uuid;begin
+do $$declare company uuid:=(select value::uuid from test_state where key='company_a');invitation jsonb;plant uuid;invite_key uuid:=gen_random_uuid();before_count integer;begin
  select id into plant from public.plants where company_id=company limit 1;
- invitation:=public.invite_member(company,'sample-inspector@example.invalid',array['Quality inspector'],array[plant],false,gen_random_uuid());insert into test_state values('invite_inspector',invitation->>'token');
+ invitation:=public.invite_member(company,'sample-inspector@example.invalid',array['Quality inspector'],array[plant],false,invite_key);insert into test_state values('invite_inspector',invitation->>'token');
+ select count(*) into before_count from public.audit_log;
+ perform pg_temp.assert_true(public.invite_member(company,'sample-inspector@example.invalid',array['Quality inspector'],array[plant],false,invite_key)=invitation,'invitation retry returns original identifier and token');
+ perform pg_temp.assert_true((select count(*) from public.audit_log)=before_count,'invitation retry appends no second audit event');
+ begin perform public.invite_member(company,'sample-changed@example.invalid',array['Quality inspector'],array[plant],false,invite_key);raise exception 'missing rejection';exception when others then perform pg_temp.assert_true(sqlerrm='IDEMPOTENCY_KEY_REUSED','changed invitation retry rejected');end;
+ perform pg_temp.assert_true((select count(*) from public.audit_log)=before_count,'changed invitation retry leaves audit unchanged');
+
  begin perform public.update_member_access(company,'10000000-0000-4000-8000-000000000001',array['Administrator'],array[plant],true,false,array[]::text[],gen_random_uuid());raise exception 'missing rejection';exception when others then perform pg_temp.assert_true(sqlerrm='PERMISSION_DENIED','Owner cannot be removed or demoted through member administration');end;
 end$$;
 select pg_temp.actor('10000000-0000-4000-8000-000000000003');
@@ -82,9 +88,14 @@ do $$declare company uuid:=(select value::uuid from test_state where key='compan
  perform pg_temp.assert_true((select count(*)from public.records where kind='quotation')=0,'read API hides commercial prices from inspector');
 end$$;
 select pg_temp.actor('10000000-0000-4000-8000-000000000001');
-do $$declare company uuid:=(select value::uuid from test_state where key='company_a');plant uuid;plant_key uuid:=gen_random_uuid();result jsonb;item uuid:=(select value::uuid from test_state where key='item_a');row public.records%rowtype;before_count integer;begin
+do $$declare company uuid:=(select value::uuid from test_state where key='company_a');plant uuid;plant_key uuid:=gen_random_uuid();member_key uuid:=gen_random_uuid();result jsonb;item uuid:=(select value::uuid from test_state where key='item_a');row public.records%rowtype;before_count integer;begin
  plant:=public.create_plant(company,'SAMPLE Scoped plant','SAMPLE Scoped stores',plant_key);
  perform pg_temp.assert_true(public.create_plant(company,'SAMPLE Scoped plant','SAMPLE Scoped stores',plant_key)=plant,'plant creation retries commit once');
+ select count(*) into before_count from public.audit_log;
+ begin perform public.create_plant(company,'SAMPLE Changed plant','SAMPLE Scoped stores',plant_key);raise exception 'missing rejection';exception when others then perform pg_temp.assert_true(sqlerrm='IDEMPOTENCY_KEY_REUSED','changed plant retry rejected');end;
+ perform pg_temp.assert_true((select count(*) from public.audit_log)=before_count,'changed plant retry leaves audit unchanged');
+ perform pg_temp.assert_true((select count(*) from public.plants where company_id=company and name='SAMPLE Scoped plant')=1 and (select count(*) from public.warehouses where company_id=company and plant_id=plant)=1,'plant replay creates one plant and initial warehouse');
+
  insert into test_state values('plant_scoped',plant::text);
  select * into row from public.records where id=item;
  insert into test_state values('plant_original',row.plant_id::text);
@@ -92,7 +103,14 @@ do $$declare company uuid:=(select value::uuid from test_state where key='compan
  result:=public.execute_command(jsonb_build_object('contractVersion',1,'command','save_record','authority',jsonb_build_object('kind','team','companyId',company,'plantId',row.plant_id),'expectedRevision',row.revision::text,'idempotencyKey',gen_random_uuid(),'payload',jsonb_build_object('kind','item','id',item,'code',row.code,'name',row.name,'fields',row.fields||'{"unit":"kg"}')));
  perform pg_temp.assert_true(result->'error'->>'code'='INVALID_TRANSITION','referenced item interpretation cannot change');
  perform pg_temp.assert_true((select count(*)from public.audit_log)=before_count,'item integrity rejection leaves no audit mutation');
- perform public.update_member_access(company,'10000000-0000-4000-8000-000000000003',array['Stores','Quality inspector'],array[plant],false,true,array[]::text[],gen_random_uuid());
+ perform public.update_member_access(company,'10000000-0000-4000-8000-000000000003',array['Stores','Quality inspector'],array[plant],false,true,array[]::text[],member_key);
+ select count(*) into before_count from public.audit_log;
+ perform public.update_member_access(company,'10000000-0000-4000-8000-000000000003',array['Stores','Quality inspector'],array[plant],false,true,array[]::text[],member_key);
+ perform pg_temp.assert_true((select count(*) from public.audit_log)=before_count,'member access retry appends no second audit event');
+ begin perform public.update_member_access(company,'10000000-0000-4000-8000-000000000003',array['Quality inspector'],array[plant],false,true,array[]::text[],member_key);raise exception 'missing rejection';exception when others then perform pg_temp.assert_true(sqlerrm='IDEMPOTENCY_KEY_REUSED','changed member access retry rejected');end;
+ perform pg_temp.assert_true((select count(*) from public.audit_log)=before_count,'changed member access retry leaves audit unchanged');
+ perform pg_temp.assert_true((select count(*) from public.member_role_assignments where company_id=company and user_id='10000000-0000-4000-8000-000000000003' and role_name in ('Stores','Quality inspector'))=2,'member replay and failed amendment preserve original roles');
+
 end$$;
 select pg_temp.actor('10000000-0000-4000-8000-000000000003');
 do $$declare company uuid:=(select value::uuid from test_state where key='company_a');plant uuid:=(select value::uuid from test_state where key='plant_scoped');snapshot jsonb;result jsonb;begin

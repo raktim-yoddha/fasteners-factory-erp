@@ -35,3 +35,10 @@ This version is not the completed M0–M10 ERP or a certified factory rollout. F
 - Retained original requests across restart and uncertain retries, pinned verified account tokens, and validated company identifiers and definitive rollback responses.
 - Separated committed company status from local cleanup or list refresh failures. Added thirteen focused tests, two browser fault flows and two real Auth/HTTP rollback checks.
 - Kept Solo on SQLite and Team on Supabase PostgreSQL. No schema migration or synchronization was added.
+
+### Team administration recovery continuation
+
+- Added strict keyed invitation, member-access and plant commands with durable original-request recovery outside tenant-dependent screens.
+- Reused company setup's journal locks, confirmation handling and token verification; retained uncertain evidence after denied retries and kept returned invitation tokens transient.
+- Blocked new Team writes/scope changes during unresolved administration; exposed corruption/quota recovery and preserved committed status across read/cleanup failure.
+- Added thirteen shared tests, five browser administration fault flows, eleven real Supabase replay/audit/role assertions and three signed HTTP permission checks. Solo remains SQLite; no schema migration or synchronization was added.
