@@ -18,3 +18,5 @@ M0–M10 scope and acceptance gates are defined in [PID](../../PID.md). Feature-
 Owner steering, 2026-10-13: work directly without subagents. Prioritize Electron desktop, then the multi-person/multi-role backend. Mobile is deferred. All remaining tasks are owned by the primary agent.
 
 [0008 — Team command concurrency](TASK-0008-team-command-concurrency.md): implemented; revocation race reproduced and fixed, 58 authority plus 15 real concurrency assertions, 8 Auth/HTTP checks and clean local security advisors recorded.
+
+[0009 — Atomic local schema initialization](TASK-0009-atomic-schema-initialization.md): implemented; six preservation/rollback cases, 50 shared tests and affected browser/Windows package acceptance recorded. No schema-v1 data transformation or upgrade was performed.

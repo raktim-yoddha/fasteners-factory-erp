@@ -27,3 +27,5 @@ Activation flushes and revalidates candidate bytes, quiesces the old connection,
 Preserve the complete user-data directory when recovery is needed. Live/retained databases remain OS-protected plaintext. The UI restores encrypted snapshots; reviewed export/activation of retained raw databases is a remaining operations feature. Older development binaries do not understand this selector and must not operate on the profile after activation. Update/binary rollback compatibility remains a release gate.
 
 See [testing.md](testing.md), [features.md](../features.md) and [TASK-0007](tasks/TASK-0007-desktop-snapshot-restore.md) for evidence and remaining scope.
+
+Startup now checks supported explicit schema objects and the stored version/checksum before DDL. An unsupported/damaged/unversioned existing database remains byte-identical after rejection; a failed first initialization rolls back all created objects and its version. Keep rejected bytes for reviewed recovery. Startup checks names/types/version; encrypted restore additionally validates complete schema SQL and supported domain data.

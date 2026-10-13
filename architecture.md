@@ -85,3 +85,7 @@ Typed application recovery ports expose individual preview/activate/cancel prelo
 ## Concurrent team command authority
 
 Business RPCs acquire shared company/current-actor membership locks, then the existing plant stock lock. The checked delegate revalidates current permissions, plant, company state and MFA while those rows remain protected through commit. Metadata changes either commit before authorization and are observed, or wait for the already authorized command. The unlocked private delegate has no client execution grant. Public signatures are unchanged. This proves the current stock command slice; wider administration and production contention remain pending.
+
+## Local startup compatibility
+
+The owning local schema service enables connection foreign keys, then reads metadata/version within a serialized transaction before any DDL. Existing databases require the supported explicit object names/types and exactly one supported version/checksum row. Missing history objects, unversioned existing tables, unexpected objects or unknown versions fail without repair. Empty schema plus its version commit atomically. This does not perform a version upgrade or authorize destructive downgrade.

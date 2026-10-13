@@ -23,3 +23,8 @@ This version is not the completed M0–M10 ERP or a certified factory rollout. F
 - Fixed a queued command committing after membership revocation by holding shared company/current-membership locks across authorization and business commit.
 - Preserved the public RPC and checked transaction delegate; removed all client grants on the unlocked implementation.
 - Added deterministic real PostgreSQL multi-session contention/retry/revision/access/MFA acceptance with guarded disposable-database cleanup, wired into `test:db` and existing CI.
+
+### Local startup integrity continuation
+
+- Made first SQLite schema/version creation atomic and checked existing metadata before DDL.
+- Rejected unsupported, damaged and unversioned databases without recreating missing history; six real SQLite cases prove unchanged bytes and rollback/retry.

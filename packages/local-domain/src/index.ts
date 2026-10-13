@@ -10,29 +10,12 @@ import {
   type Workspace,
 } from '@fasteners/contracts';
 import { canonical, decimal } from '@fasteners/domain';
-import { schema, schemaVersion, type SqlDriver, type SqlRow } from '@fasteners/sqlite-schema';
+import { type SqlDriver, type SqlRow } from '@fasteners/sqlite-schema';
 import { executeLocal } from './commands';
 import { balance, mapRecord, now, one, reserved, text, uuid } from './database';
 
-export const schemaChecksum = 'fasteners-sqlite-v1-core-2026-10-13';
+export { initialize, schemaChecksum } from './schema';
 export { validateRecoveryData } from './recovery-validation';
-export async function initialize(driver: SqlDriver): Promise<void> {
-  await driver.run(schema);
-  const versions = await driver.all('SELECT * FROM schema_versions ORDER BY version DESC');
-  if (
-    versions[0] &&
-    (Number(versions[0].version) !== schemaVersion || versions[0].checksum !== schemaChecksum)
-  )
-    throw new DomainError(
-      'SCHEMA_INCOMPATIBLE',
-      'This local schema is not supported by this application.',
-    );
-  if (!versions.length)
-    await driver.run('INSERT INTO schema_versions(version,checksum) VALUES(?,?)', [
-      schemaVersion,
-      schemaChecksum,
-    ]);
-}
 function workspace(row: SqlRow): Workspace {
   return {
     id: text(row, 'id'),
